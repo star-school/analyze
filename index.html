@@ -910,6 +910,9 @@ header {
     #version-footer {
         display: none !important;
     }
+    #loading-overlay {
+        display: none !important;
+    }
 }
 
 /* ヒアリングガイド用スタイル */
@@ -952,6 +955,11 @@ header {
 }
 .hearing-guide-list li {
     margin-bottom: 4px;
+}
+
+/* ローディングスピナー用アニメーション */
+@keyframes loading-spin {
+    to { transform: rotate(360deg); }
 }
 
 </style>
@@ -1730,6 +1738,24 @@ header {
                 <!-- フィルターセクション -->
                 <div class="filter-section" id="filter-section">
                     <div class="filter-group">
+                        <label>受講種別 (複数選択可)</label>
+                        <div id="filter-courseType-container" style="max-height: 80px; overflow-y: auto; font-size: 0.85rem; padding: 5px; border: 1px solid var(--border); border-radius: 4px; background: var(--background);">
+                            <!-- checkboxes will be injected here -->
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-division">管轄</label>
+                        <select id="filter-division">
+                            <option value="all">すべて</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-area">エリア区分</label>
+                        <select id="filter-area">
+                            <option value="all">すべて</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
                         <label for="filter-store">教室</label>
                         <select id="filter-store">
                             <option value="all">すべて</option>
@@ -1746,12 +1772,6 @@ header {
                         <select id="filter-grade">
                             <option value="all">すべて</option>
                         </select>
-                    </div>
-                    <div class="filter-group">
-                        <label>受講種別 (複数選択可)</label>
-                        <div id="filter-courseType-container" style="max-height: 80px; overflow-y: auto; font-size: 0.85rem; padding: 5px; border: 1px solid var(--border); border-radius: 4px; background: var(--background);">
-                            <!-- checkboxes will be injected here -->
-                        </div>
                     </div>
                     <div class="filter-group">
                         <label for="filter-status">ステータス (区分)</label>
@@ -1987,6 +2007,40 @@ header {
                 <div class="kpi-sub" style="margin-top: 10px;">* 体験実施数＝「問合せ」「体験キャンセル」「体験予約に至らず」以外の対応完了ステータスの合計</div>
             </div>
 
+            <!-- 学年別比較テーブル -->
+            <div class="table-card">
+                <h2>
+                    学年別のKPI比較マトリクス
+                    <button id="export-grade-table-excel-btn" class="btn-export">📥 Excelへ出力</button>
+                    <button id="export-grade-all-stores-excel-btn" class="btn-export" style="margin-left: 8px; background: var(--secondary-hover); border-color: var(--secondary-hover);">📥 全教室分を一括出力</button>
+                </h2>
+                <div class="table-responsive">
+                    <table id="grade-table">
+                        <thead>
+                             <tr>
+                                <th data-sort-grade="grade" style="cursor: pointer; user-select: none;">学年 <span class="sort-icon"></span></th>
+                                <th data-sort-grade="courseType" style="cursor: pointer; user-select: none;">受講種別 <span class="sort-icon"></span></th>
+                                <th data-sort-grade="total" style="cursor: pointer; user-select: none;">総問合せ数 <span class="sort-icon">▼</span></th>
+                                <th data-sort-grade="trialDone" style="cursor: pointer; user-select: none;">体験実施数* <span class="sort-icon"></span></th>
+                                <th data-sort-grade="trialRate" style="cursor: pointer; user-select: none;">体験実施率 <span class="sort-icon"></span></th>
+                                <th data-sort-grade="trialEnrollRate" style="cursor: pointer; user-select: none;">体験入会率 <span class="sort-icon"></span></th>
+                                <th data-sort-grade="trialNgRate" style="cursor: pointer; user-select: none;">体験NG率 <span class="sort-icon"></span></th>
+                                <th data-sort-grade="enroll" style="cursor: pointer; user-select: none;">入会数 <span class="sort-icon"></span></th>
+                                <th data-sort-grade="totalEnrollRate" style="cursor: pointer; user-select: none;">問合せ入会率 <span class="sort-icon"></span></th>
+                                <th data-sort-grade="immediateEnroll" style="cursor: pointer; user-select: none;">即入会数 <span class="sort-icon"></span></th>
+                                <th data-sort-grade="immediateEnrollRate" style="cursor: pointer; user-select: none;">即入会率 <span class="sort-icon"></span></th>
+                                <th data-sort-grade="ng" style="cursor: pointer; user-select: none;">NG数 (全体比) <span class="sort-icon"></span></th>
+                                <th data-sort-grade="withdraw" style="cursor: pointer; user-select: none;">退会者数 <span class="sort-icon"></span></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- JavaScriptで動的生成 -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="kpi-sub" style="margin-top: 10px;">* 体験実施数＝「問合せ」「体験キャンセル」「体験予約に至らず」以外の対応完了ステータスの合計</div>
+            </div>
+
             <!-- AIデータ分析チャット機能 -->
             <div class="table-card" style="display: none;">
                 <h2>✨ AIデータ分析アシスタント (Chat with Data)</h2>
@@ -2086,8 +2140,15 @@ header {
         入会対応分析ツール <span id="version-text">v1.2.0</span>
     </div>
 
+    <!-- 処理中ローディングオーバーレイ -->
+    <div id="loading-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.85); z-index: 9999; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(4px); transition: all 0.3s ease;">
+        <div class="loading-spinner" style="width: 50px; height: 50px; border: 5px solid var(--primary-light); border-top-color: var(--primary); border-radius: 50%; animation: loading-spin 1s infinite linear; margin-bottom: 20px;"></div>
+        <div id="loading-message" style="font-size: 1.15rem; font-weight: bold; color: var(--primary); text-align: center; font-family: 'Meiryo', sans-serif;">ファイルを読み込んでいます...</div>
+        <div id="loading-sub-message" style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 8px; font-family: 'Meiryo', sans-serif;">そのまましばらくお待ちください。</div>
+    </div>
+
     <!-- JavaScript のインポート -->
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
     <script>
 // 外部ライブラリ (xlsx, Chart.js) がグローバルに読み込まれている前提
@@ -2098,14 +2159,16 @@ let filteredData = []; // フィルター適用後のデータ
 let allStoreFilteredData = []; // 教室フィルタを無視したフィルタ適用後のデータ（KPIマトリクス用）
 let charts = {}; // 作成されたグラフオブジェクトの参照
 let storeTableSort = { key: 'total', direction: 'desc' }; // 教室別テーブルのソート状態
+let gradeTableSort = { key: 'total', direction: 'desc' }; // 学年別テーブルのソート状態
 let detailTableSort = { key: 'id', direction: 'asc' }; // 生徒データ詳細テーブルのソート状態
 let yoyMode = 'inq'; // 前年同期比グラフの表示モード ('inq': 問合せ数, 'enroll': 入会数)
 let currentStoreSummaryList = []; // Excel出力用にマトリクス集計結果を保持するグローバル変数
+let currentGradeSummaryList = []; // Excel出力用に学年別集計結果を保持するグローバル変数
 
 // 列の同義語辞書（表記揺れ対応用）
 const COLUMN_SYNONYMS = {
     status: ['区分', 'ステータス', '対応区分', '結果'],
-    store: ['校舎名', '校舎', '教室名', '教室', '教場名', '教場ID'],
+    store: ['校舎名', '校舎', '教室名', '教室', '教場名'],
     currentGrade: ['学年', '現在の学年', '学年（現在）'],
     purpose: ['来校目的', '問合せ区分', '目的', '問い合わせ区分', '受講コース', 'コース名'],
     inquiryDate: ['問合せ日', '問合せ日時', '問い合わせ日', '受付日'],
@@ -2117,13 +2180,16 @@ const COLUMN_SYNONYMS = {
     firstName: ['名', '名前'],
     fullName: ['氏名', '生徒名', '生徒氏名'],
     courseType: ['受講種別', '受講区分'],
-    generation: ['年代', '年齢区分', '年齢層', '世代']
+    generation: ['年代', '年齢区分', '年齢層', '世代'],
+    divisionId: ['管轄ID', '管轄コード'],
+    storeId: ['教場ID', '教場コード']
 };
 
 document.addEventListener('DOMContentLoaded', () => {
     initFileLoader();
     initFilters();
     initStoreTableSort();
+    initGradeTableSort();
     initDetailTableSort();
     
     // 基準日の初期化（本日）と変更イベント
@@ -2145,6 +2211,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Excel出力ボタンのイベント
     document.getElementById('export-excel-btn').addEventListener('click', exportStoreTableToExcel);
+    const exportGradeBtn = document.getElementById('export-grade-table-excel-btn');
+    if (exportGradeBtn) {
+        exportGradeBtn.addEventListener('click', exportGradeTableToExcel);
+    }
+    const exportGradeAllBtn = document.getElementById('export-grade-all-stores-excel-btn');
+    if (exportGradeAllBtn) {
+        exportGradeAllBtn.addEventListener('click', exportGradeAllStoresTableToExcel);
+    }
     const exportDetailBtn = document.getElementById('export-detail-excel-btn');
     if (exportDetailBtn) {
         exportDetailBtn.addEventListener('click', exportDetailTableToExcel);
@@ -2230,11 +2304,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // バージョン情報の表示更新
     const versionText = document.getElementById('version-text');
     if (versionText) {
-        if (LIMIT_CONFIG_FEATURES) {
-            versionText.textContent = 'v1.2.0 (内部公開版)';
-        } else {
-            versionText.textContent = 'v1.2.0';
+        let baseVer = LIMIT_CONFIG_FEATURES ? 'v1.3.0 (内部公開版)' : 'v1.3.0';
+        if (STORES_MASTER_DATE) {
+            baseVer += ` | 教室マスタ: ${STORES_MASTER_DATE}時点`;
         }
+        versionText.textContent = baseVer;
     }
 
     const pdfBtn = document.getElementById('export-pdf-btn');
@@ -2323,6 +2397,29 @@ function showScreen(screenId) {
         document.getElementById('dashboard-screen').className = 'screenactive';
     }
 }
+
+// ローディング表示制御用ヘルパー関数
+function showLoading(message, subMessage = '') {
+    const overlay = document.getElementById('loading-overlay');
+    const msgEl = document.getElementById('loading-message');
+    const subMsgEl = document.getElementById('loading-sub-message');
+    if (overlay && msgEl) {
+        msgEl.textContent = message;
+        if (subMsgEl) subMsgEl.textContent = subMessage;
+        overlay.style.flexDirection = 'column';
+        overlay.style.display = 'flex';
+    }
+}
+
+function hideLoading() {
+    const overlay = document.getElementById('loading-overlay');
+    if (overlay) {
+        overlay.style.display = 'none';
+    }
+}
+
+let STORES_MASTER = {"1002": {"name": "伊丹駅前", "division": "大阪", "area": "兵庫"}, "1006": {"name": "アル・プラザ近江八幡", "division": "大阪", "area": "京阪京滋"}, "1013": {"name": "ダイエー三宮駅前", "division": "大阪", "area": "兵庫"}, "1014": {"name": "メラード大和田", "division": "大阪", "area": "大阪北"}, "1015": {"name": "メッツ大曽根", "division": "大阪", "area": "東海"}, "1016": {"name": "東大阪", "division": "大阪", "area": "近鉄"}, "1018": {"name": "バロー豊橋", "division": "大阪", "area": "東海"}, "1022": {"name": "アリオ八尾", "division": "大阪", "area": "近鉄"}, "1029": {"name": "イオン吹田", "division": "大阪", "area": "大阪北"}, "1030": {"name": "ライフ門真", "division": "大阪", "area": "京阪京滋"}, "1031": {"name": "イオンモール奈良登美ケ丘", "division": "大阪", "area": "近鉄"}, "1043": {"name": "ダイエー北野田", "division": "大阪", "area": "大阪南"}, "1061": {"name": "ラクト山科", "division": "大阪", "area": "京阪京滋"}, "1072": {"name": "咲ランドショッピングセンター", "division": "大阪", "area": "兵庫"}, "1076": {"name": "ライフ香里園", "division": "大阪", "area": "京阪京滋"}, "1081": {"name": "エコール・マミ", "division": "大阪", "area": "近鉄"}, "1083": {"name": "京橋", "division": "大阪", "area": "京阪京滋"}, "1089": {"name": "エコール・ロゼ", "division": "大阪", "area": "大阪南"}, "1097": {"name": "イトーヨーカドー明石", "division": "大阪", "area": "兵庫"}, "1099": {"name": "スピナマート中井", "division": "大阪", "area": "九州"}, "1104": {"name": "コロワ甲子園", "division": "大阪", "area": "兵庫"}, "1107": {"name": "イオンスタイル野田阪神", "division": "大阪", "area": "大阪北"}, "1113": {"name": "ライフ太秦", "division": "大阪", "area": "京阪京滋"}, "1114": {"name": "イズミヤショッピングセンター千里丘", "division": "大阪", "area": "大阪北"}, "1116": {"name": "イオン北千里", "division": "大阪", "area": "大阪北"}, "1118": {"name": "イトーヨーカドーあべの", "division": "大阪", "area": "近鉄"}, "1121": {"name": "イオン西宮門戸", "division": "大阪", "area": "兵庫"}, "1122": {"name": "ならファミリー", "division": "大阪", "area": "近鉄"}, "1123": {"name": "遠鉄百貨店", "division": "大阪", "area": "東海"}, "1124": {"name": "アステ川西", "division": "大阪", "area": "兵庫"}, "1125": {"name": "イオンスタイル笹丘", "division": "大阪", "area": "九州"}, "1126": {"name": "フェリエ南草津", "division": "大阪", "area": "京阪京滋"}, "1128": {"name": "イオンスタイル新茨木", "division": "大阪", "area": "大阪北"}, "1129": {"name": "プライムツリー赤池", "division": "大阪", "area": "東海"}, "1131": {"name": "近鉄百貨店上本町", "division": "大阪", "area": "近鉄"}, "1132": {"name": "南海堺東駅", "division": "大阪", "area": "大阪南"}, "2000": {"name": "本部(閲覧用)", "division": "大阪", "area": ""}, "2003": {"name": "イオンタウンユーカリが丘", "division": "東京", "area": "千葉"}, "2005": {"name": "イトーヨーカドー古淵", "division": "東京", "area": "神奈川A"}, "2006": {"name": "イトーヨーカドー流山", "division": "東京", "area": "常磐"}, "2008": {"name": "亀有駅前", "division": "東京", "area": "常磐"}, "2013": {"name": "アリオ葛西", "division": "東京", "area": "千葉"}, "2016": {"name": "イオンスタイル東神奈川", "division": "東京", "area": "神奈川B"}, "2024": {"name": "イオン北小金", "division": "東京", "area": "常磐"}, "2028": {"name": "イトーヨーカドー松戸", "division": "東京", "area": "常磐"}, "2037": {"name": "サプラ竜ヶ崎", "division": "東京", "area": "常磐"}, "2048": {"name": "イオン橋本", "division": "東京", "area": "神奈川A"}, "2049": {"name": "大泉学園ゆめりあ", "division": "東京", "area": "埼玉A"}, "2050": {"name": "西武所沢", "division": "東京", "area": "埼玉A"}, "2058": {"name": "ららテラス川口", "division": "東京", "area": "埼玉B"}, "2059": {"name": "イオンモール春日部", "division": "東京", "area": "埼玉B"}, "2060": {"name": "イオン東大島", "division": "東京", "area": "東京"}, "2062": {"name": "海老名マルイ", "division": "東京", "area": "神奈川A"}, "2065": {"name": "茅ヶ崎", "division": "東京", "area": "神奈川A"}, "2071": {"name": "茂原駅前", "division": "東京", "area": "千葉"}, "2075": {"name": "ノジマ鴨宮", "division": "東京", "area": "神奈川A"}, "2082": {"name": "いなげや毛呂", "division": "東京", "area": "埼玉A"}, "2083": {"name": "西友福生", "division": "東京", "area": "東京"}, "2085": {"name": "アリオ深谷", "division": "東京", "area": "埼玉A"}, "2095": {"name": "イトーヨーカドー船橋", "division": "東京", "area": "千葉"}, "2099": {"name": "イトーヨーカドー三郷", "division": "東京", "area": "常磐"}, "2104": {"name": "アリオ亀有", "division": "東京", "area": "常磐"}, "2106": {"name": "イトーヨーカドー川崎", "division": "東京", "area": "神奈川B"}, "2108": {"name": "イオンモール津田沼North", "division": "東京", "area": "千葉"}, "2110": {"name": "越谷サンシティ", "division": "東京", "area": "埼玉B"}, "2111": {"name": "おおたかの森Ｓ・Ｃ", "division": "東京", "area": "常磐"}, "2117": {"name": "アビイクオーレ我孫子", "division": "東京", "area": "常磐"}, "2118": {"name": "まるひろ上尾SC", "division": "東京", "area": "埼玉B"}, "2121": {"name": "まるひろ南浦和SC", "division": "東京", "area": "埼玉B"}, "2122": {"name": "イオン市川妙典", "division": "東京", "area": "千葉"}, "2124": {"name": "まるひろ入間", "division": "東京", "area": "埼玉A"}, "2125": {"name": "センター北あいたい", "division": "東京", "area": "神奈川B"}, "2126": {"name": "イオン鎌取", "division": "東京", "area": "千葉"}, "2127": {"name": "イオンモール与野", "division": "東京", "area": "埼玉B"}, "2128": {"name": "神保町駅前", "division": "東京", "area": "東京"}, "2129": {"name": "マルイファミリー溝口", "division": "東京", "area": "神奈川B"}, "2133": {"name": "中野マルイ", "division": "東京", "area": "東京"}, "2134": {"name": "錦糸町マルイ", "division": "東京", "area": "東京"}, "2135": {"name": "上野マルイ", "division": "東京", "area": "常磐"}, "2136": {"name": "吉祥寺マルイ", "division": "東京", "area": "東京"}, "2137": {"name": "みんまーイトーヨーカドー綾瀬", "division": "東京", "area": "対象外"}, "2138": {"name": "国分寺マルイ", "division": "東京", "area": "東京"}, "2139": {"name": "みんまーイトーヨーカドー幕張", "division": "東京", "area": "対象外"}, "2140": {"name": "大宮マルイ", "division": "東京", "area": "埼玉B"}, "2141": {"name": "立川高島屋S.C.", "division": "東京", "area": "東京"}, "2142": {"name": "エキニア横浜", "division": "東京", "area": "神奈川B"}, "2143": {"name": "まるひろ川越", "division": "東京", "area": "埼玉A"}};
+let STORES_MASTER_DATE = "2026/07/10";
 
 let customMessages = null; // メッセージ設定用Excelデータ
 let DEFAULT_MESSAGES = {
@@ -2420,229 +2517,315 @@ function initFileLoader() {
 }
 
 function handleFiles(files) {
-    if (LIMIT_CONFIG_FEATURES) {
-        if (files && files.length > 0) {
-            handleFile(files[0]);
-        }
-        return;
-    }
-    let dataFile = null;
-    let configFile = null;
-
-    // ファイルを走査
-    const promises = Array.from(files).map(file => {
-        return new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    // シート名のみ高速にプレビュー取得
-                    const workbook = XLSX.read(data, { type: 'array', bookSheets: true });
-                    const sheetNames = workbook.SheetNames;
-                    if (sheetNames.includes('学年別アドバイス')) {
-                        configFile = file;
-                    } else {
-                        dataFile = file;
-                    }
-                } catch (err) {
-                    dataFile = file;
-                }
-                resolve();
-            };
-            reader.readAsArrayBuffer(file);
-        });
-    });
-
-    Promise.all(promises).then(() => {
-        if (!dataFile) {
-            alert('実績データのExcelファイルを読み込んでください。');
+    showLoading('ファイルを展開しています...', 'Excelファイルからバイナリデータを取得中');
+    
+    // setTimeoutを挟んでローディング画面が確実に描画される時間を確保
+    setTimeout(() => {
+        if (LIMIT_CONFIG_FEATURES) {
+            if (files && files.length > 0) {
+                handleFile(files[0]);
+            } else {
+                hideLoading();
+            }
             return;
         }
+        let dataFile = null;
+        let configFile = null;
 
-        // 設定用Excelがあれば先に読み込み、その後に実績Excelを読み込む
-        if (configFile) {
-            parseConfigFile(configFile, () => {
-                handleFile(dataFile);
+        // ファイルを走査
+        const promises = Array.from(files).map(file => {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        // シート名のみ高速にプレビュー取得
+                        const workbook = XLSX.read(data, { type: 'array', bookSheets: true });
+                        const sheetNames = workbook.SheetNames;
+                        if (sheetNames.includes('学年別アドバイス')) {
+                            configFile = file;
+                        } else {
+                            dataFile = file;
+                        }
+                    } catch (err) {
+                        dataFile = file;
+                    }
+                    resolve();
+                };
+                reader.readAsArrayBuffer(file);
             });
-        } else {
-            customMessages = null; // リセット
-            handleFile(dataFile);
-        }
-    });
-}
+        });
 
-function parseConfigFile(file, callback) {
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        try {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, { type: 'array', cellDates: true });
-            
-            const messages = {
-                grades: {},
-                funnel: {}
-            };
-
-            // シート1: 学年別アドバイス
-            const sheet1 = workbook.Sheets['学年別アドバイス'];
-            if (sheet1) {
-                const rows = XLSX.utils.sheet_to_json(sheet1);
-                rows.forEach(row => {
-                    const cat = row['学年区分'];
-                    if (cat) {
-                        messages.grades[cat] = {
-                            hypothesis: row['ボトルネック仮説'] || '',
-                            actions: [
-                                row['アクション1'] || '',
-                                row['アクション2'] || '',
-                                row['アクション3'] || ''
-                            ].filter(Boolean)
-                        };
-                    }
-                });
-            }
-
-            // シート2: ファネル警告メッセージ
-            const sheet2 = workbook.Sheets['ファネル警告メッセージ'];
-            if (sheet2) {
-                const rows = XLSX.utils.sheet_to_json(sheet2);
-                rows.forEach(row => {
-                    const metric = row['対象指標'];
-                    if (metric) {
-                        messages.funnel[metric] = {
-                            childBottleneck: row['子供用_ボトルネック仮説'] || '',
-                            childChecklist: (row['子供用_ヒアリング項目(改行区切り)'] || '').split('\n').map(s => s.trim()).filter(Boolean),
-                            adultBottleneck: row['大人用_ボトルネック仮説'] || '',
-                            adultChecklist: (row['大人用_ヒアリング項目(改行区切り)'] || '').split('\n').map(s => s.trim()).filter(Boolean)
-                        };
-                    }
-                });
-            }
-
-            customMessages = messages;
-        } catch (err) {
-            console.error('設定ファイルの読み込みに失敗しました:', err);
-            alert('メッセージ設定ファイルのパースに失敗しました。デフォルト設定で動かします。');
-        }
-        callback();
-    };
-    reader.readAsArrayBuffer(file);
-}
-
-function handleFile(file) {
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        try {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, { type: 'array', cellDates: true });
-            
-            // 最初のシートを選択
-            const sheetName = workbook.SheetNames[0];
-            const sheet = workbook.Sheets[sheetName];
-            
-            // 外部システム由来のExcelファイルで !ref (有効範囲) が破損している場合に対処するため、実際の範囲を再計算する
-            if (sheet && sheet['!ref']) {
-                let minC = 10000000, minR = 10000000, maxC = 0, maxR = 0;
-                let hasData = false;
-                for (const key of Object.keys(sheet)) {
-                    if (key[0] === '!') continue;
-                    const cell = XLSX.utils.decode_cell(key);
-                    if (cell.c < minC) minC = cell.c;
-                    if (cell.r < minR) minR = cell.r;
-                    if (cell.c > maxC) maxC = cell.c;
-                    if (cell.r > maxR) maxR = cell.r;
-                    hasData = true;
-                }
-                if (hasData) {
-                    sheet['!ref'] = XLSX.utils.encode_range({ s: { c: minC, r: minR }, e: { c: maxC, r: maxR } });
-                }
-            }
-
-            // ヘッダーと行データをパース
-            const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
-            if (rows.length < 2) {
-                alert('Excelシートに十分なデータが含まれていません。');
+        Promise.all(promises).then(() => {
+            if (!dataFile) {
+                hideLoading();
+                alert('実績データのExcelファイルを読み込んでください。');
                 return;
             }
 
-            const headers = rows[0];
-            const dataRows = rows.slice(1);
-
-            // ヘッダー名から必要な列の同義語マッピングを解決
-            const resolvedMapping = resolveColumnMapping(headers);
-
-            // 生データをパースして、統一オブジェクトに変換
-            processedData = dataRows.map((row, idx) => {
-                const item = { id: idx + 1 };
-                
-                // 動的列マッピングの適用
-                Object.keys(resolvedMapping).forEach(key => {
-                    const colIdx = resolvedMapping[key];
-                    item[key] = colIdx !== -1 ? row[colIdx] : '';
+            // 設定用Excelがあれば先に読み込み、その後に実績Excelを読み込む
+            if (configFile) {
+                parseConfigFile(configFile, () => {
+                    handleFile(dataFile);
                 });
-
-                // 値のフォーマット調整
-                item.store = cleanStoreName(item.store);
-                item.status = item.status ? item.status.toString().trim() : '(空白)';
-                item.purpose = item.purpose ? item.purpose.toString().trim() : '(空白)';
-                item.courseType = item.courseType ? item.courseType.toString().trim() : '(空白)';
-                item.generation = item.generation ? item.generation.toString().trim() : '';
-                
-                // 名前データの結合
-                let nameStr = '';
-                if (item.fullName) {
-                    nameStr = item.fullName.toString().trim();
-                } else if (item.lastName || item.firstName) {
-                    nameStr = `${item.lastName || ''} ${item.firstName || ''}`.trim();
-                }
-                item.displayName = nameStr || '(無記名)';
-                
-                // 日付のパース
-                item.inquiryDateStr = formatDate(item.inquiryDate);
-                item.trialDateStr = formatDate(item.trialDate);
-                item.enrollDateStr = formatDate(item.enrollDate);
-
-                // 即入会判定 (ステータスが受講生/退会生 かつ 体験日と入会日が一致)
-                const isEnroll = (item.status === '受講生' || item.status === '退会生');
-                item.isImmediateEnroll = isEnroll && item.trialDateStr && item.enrollDateStr && (item.trialDateStr === item.enrollDateStr);
-
-                // 体験当時の学年補正
-                const dateForGrade = item.trialDateStr || item.inquiryDateStr;
-                item.trialGrade = calculateTrialGrade(item.currentGrade, dateForGrade, item.courseType, item.generation);
-
-                return item;
-            }).filter(item => item.store || item.status || item.currentGrade); // 空白行の除外
-
-            // ダッシュボード表示への切り替え
-            showScreen('dashboard-screen');
-            document.getElementById('dashboard-subtitle').innerText = `ファイル: ${file.name} (データ件数: ${processedData.length}件)`;
-
-            // 問い合わせ日の最小値・最大値を算出して初期設定する
-            const inquiryDates = processedData
-                .map(item => item.inquiryDateStr)
-                .filter(d => d && d !== '(空白)' && d !== '');
-            
-            if (inquiryDates.length > 0) {
-                inquiryDates.sort(); // 日付文字列を昇順ソート
-                document.getElementById('filter-date-start').value = inquiryDates[0];
-                document.getElementById('filter-date-end').value = inquiryDates[inquiryDates.length - 1];
-                // 日付絞り込み基準の初期設定を「問い合わせ日」にする
-                document.getElementById('filter-date-type').value = 'inquiryDate';
             } else {
-                // 日付が無い場合は「指定なし」にする
-                document.getElementById('filter-date-type').value = 'none';
+                customMessages = null; // リセット
+                handleFile(dataFile);
             }
+        }).catch(err => {
+            console.error(err);
+            hideLoading();
+        });
+    }, 50);
+}
 
-            // フィルター項目の初期化と集計
-            populateFilters(processedData);
-            applyFiltersAndRender();
+function parseConfigFile(file, callback) {
+    showLoading('設定ファイルを読み込んでいます...', '学年別アドバイスなどのルール情報を抽出中');
+    
+    setTimeout(() => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+                
+                const messages = {
+                    grades: {},
+                    funnel: {}
+                };
 
-        } catch (error) {
-            console.error(error);
-            alert('Excelファイルの読み込み中にエラーが発生しました。\n\n【エラー詳細】\n' + error.message + '\n\n【スタックトレース】\n' + error.stack);
-        }
-    };
-    reader.readAsArrayBuffer(file);
+                // シート1: 学年別アドバイス
+                const sheet1 = workbook.Sheets['学年別アドバイス'];
+                if (sheet1) {
+                    const rows = XLSX.utils.sheet_to_json(sheet1);
+                    rows.forEach(row => {
+                        const cat = row['学年区分'];
+                        if (cat) {
+                            messages.grades[cat] = {
+                                hypothesis: row['ボトルネック仮説'] || '',
+                                actions: [
+                                    row['アクション1'] || '',
+                                    row['アクション2'] || '',
+                                    row['アクション3'] || ''
+                                ].filter(Boolean)
+                            };
+                        }
+                    });
+                }
+
+                // シート2: ファネル警告メッセージ
+                const sheet2 = workbook.Sheets['ファネル警告メッセージ'];
+                if (sheet2) {
+                    const rows = XLSX.utils.sheet_to_json(sheet2);
+                    rows.forEach(row => {
+                        const metric = row['対象指標'];
+                        if (metric) {
+                            messages.funnel[metric] = {
+                                childBottleneck: row['子供用_ボトルネック仮説'] || '',
+                                childChecklist: (row['子供用_ヒアリング項目(改行区切り)'] || '').split('\n').map(s => s.trim()).filter(Boolean),
+                                adultBottleneck: row['大人用_ボトルネック仮説'] || '',
+                                adultChecklist: (row['大人用_ヒアリング項目(改行区切り)'] || '').split('\n').map(s => s.trim()).filter(Boolean)
+                            };
+                        }
+                    });
+                }
+
+                customMessages = messages;
+            } catch (err) {
+                console.error('設定ファイルの読み込みに失敗しました:', err);
+                alert('メッセージ設定ファイルのパースに失敗しました。デフォルト設定で動かします。');
+            }
+            callback();
+        };
+        reader.readAsArrayBuffer(file);
+    }, 50);
+}
+
+function handleFile(file) {
+    showLoading('実績データを解析しています...', '受講生一覧の各レコードから問合せ・体験・入会数を集計中');
+    
+    setTimeout(() => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+                
+                // 最初のシートを選択
+                const sheetName = workbook.SheetNames[0];
+                const sheet = workbook.Sheets[sheetName];
+                
+                // 外部システム由来のExcelファイルで !ref (有効範囲) が破損している場合に対処するため、実際の範囲を再計算する
+                if (sheet && sheet['!ref']) {
+                    let minC = 10000000, minR = 10000000, maxC = 0, maxR = 0;
+                    let hasData = false;
+                    for (const key of Object.keys(sheet)) {
+                        if (key[0] === '!') continue;
+                        const cell = XLSX.utils.decode_cell(key);
+                        if (cell.c < minC) minC = cell.c;
+                        if (cell.r < minR) minR = cell.r;
+                        if (cell.c > maxC) maxC = cell.c;
+                        if (cell.r > maxR) maxR = cell.r;
+                        hasData = true;
+                    }
+                    if (hasData) {
+                        sheet['!ref'] = XLSX.utils.encode_range({ s: { c: minC, r: minR }, e: { c: maxC, r: maxR } });
+                    }
+                }
+
+                // ヘッダーと行データをパース
+                const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+                if (rows.length < 2) {
+                    hideLoading();
+                    alert('Excelシートに十分なデータが含まれていません。');
+                    return;
+                }
+
+                const headers = rows[0];
+                const dataRows = rows.slice(1);
+
+                // ヘッダー名から必要な列の同義語マッピングを解決
+                const resolvedMapping = resolveColumnMapping(headers);
+
+                // 生データをパースして、統一オブジェクトに変換
+                processedData = dataRows.map((row, idx) => {
+                    const item = { id: idx + 1 };
+                    
+                    // 動的列マッピングの適用
+                    Object.keys(resolvedMapping).forEach(key => {
+                        const colIdx = resolvedMapping[key];
+                        item[key] = colIdx !== -1 ? row[colIdx] : '';
+                    });
+
+                    // 値のフォーマット調整
+                    item.store = cleanStoreName(item.store);
+                    
+                    // 教室リストマスタが有効な場合、教場No.（ID）で突合を行う
+                    if (STORES_MASTER) {
+                        // 管轄ID (1桁) + 教場ID (3桁) の4桁キーを組み立て
+                        let storeCode = "";
+                        const rawDivId = item.divisionId ? String(item.divisionId).trim() : "";
+                        const rawStoreId = item.storeId ? String(item.storeId).trim() : "";
+                        
+                        if (rawDivId && rawStoreId) {
+                            const divIdPart = rawDivId.slice(-1); // 下1桁
+                            const storeIdPart = rawStoreId.padStart(3, '0');
+                            storeCode = divIdPart + storeIdPart;
+                        }
+
+                        // マスタ引き当て
+                        let storeInfo = null;
+                        if (storeCode) {
+                            storeInfo = STORES_MASTER[storeCode];
+                        }
+                        
+                        // IDで引き当たらなかった場合は、従来通り教室名でフォールバック突合
+                        let matchedKey = storeCode;
+                        if (!storeInfo) {
+                            const foundKey = Object.keys(STORES_MASTER).find(k => STORES_MASTER[k].name === item.store);
+                            if (foundKey) {
+                                storeInfo = STORES_MASTER[foundKey];
+                                matchedKey = foundKey;
+                            }
+                        }
+
+                        if (!storeInfo) {
+                            // マスタに存在しない（または閉校・管理外の）教室データは集計から除外
+                            return null;
+                        }
+
+                        // マスタ内の正式な教室名で上書き（校舎名と教場名が完全一致しない不具合を解消）
+                        item.storeCode = matchedKey;
+                        item.store = storeInfo.name;
+                        item.division = storeInfo.division || '未分類';
+                        item.area = storeInfo.area || '未分類';
+                    } else {
+                        // マスタ未読み込み時のフォールバック
+                        item.storeCode = "";
+                        item.division = '未分類';
+                        item.area = '未分類';
+                    }
+
+                    item.status = item.status ? item.status.toString().trim() : '(空白)';
+                    item.purpose = item.purpose ? item.purpose.toString().trim() : '(空白)';
+                    item.courseType = item.courseType ? item.courseType.toString().trim() : '(空白)';
+                    item.generation = item.generation ? item.generation.toString().trim() : '';
+                    
+                    // 名前データの結合
+                    let nameStr = '';
+                    if (item.fullName) {
+                        nameStr = item.fullName.toString().trim();
+                    } else if (item.lastName || item.firstName) {
+                        nameStr = `${item.lastName || ''} ${item.firstName || ''}`.trim();
+                    }
+                    item.displayName = nameStr || '(無記名)';
+                    
+                    // 日付のパース
+                    item.inquiryDateStr = formatDate(item.inquiryDate);
+                    item.trialDateStr = formatDate(item.trialDate);
+                    item.enrollDateStr = formatDate(item.enrollDate);
+
+                    // 即入会判定 (ステータスが受講生/退会生 かつ 体験日と入会日が一致)
+                    const isEnroll = (item.status === '受講生' || item.status === '退会生');
+                    item.isImmediateEnroll = isEnroll && item.trialDateStr && item.enrollDateStr && (item.trialDateStr === item.enrollDateStr);
+
+                    // 体験当時の学年補正
+                    const dateForGrade = item.trialDateStr || item.inquiryDateStr;
+                    item.trialGrade = calculateTrialGrade(item.currentGrade, dateForGrade, item.courseType, item.generation);
+
+                    return item;
+                }).filter(Boolean).filter(item => item.store || item.status || item.currentGrade); // 空白行・除外行の排除
+
+                // ダッシュボード描画への移行状況を提示
+                showLoading('ダッシュボードを描画しています...', '経年推移グラフおよび比較テーブルを組み立て中');
+
+                // 描画処理自体も setTimeout にすることで描画前ステータスが画面に出るようにする
+                setTimeout(() => {
+                    // ダッシュボード表示への切り替え
+                    showScreen('dashboard-screen');
+                    document.getElementById('dashboard-subtitle').innerText = `ファイル: ${file.name} (データ件数: ${processedData.length}件)`;
+
+                    // スクロール状態のリセット（最上部へ戻す）
+                    window.scrollTo(0, 0);
+                    
+                    // 生徒データ詳細テーブルコンテナのスクロール状態も最上部に戻す
+                    const detailTableContainer = document.querySelector('#detail-table')?.parentElement;
+                    if (detailTableContainer) {
+                        detailTableContainer.scrollTop = 0;
+                    }
+
+                    // 問い合わせ日の最小値・最大値を算出して初期設定する
+                    const inquiryDates = processedData
+                        .map(item => item.inquiryDateStr)
+                        .filter(d => d && d !== '(空白)' && d !== '');
+                    
+                    if (inquiryDates.length > 0) {
+                        inquiryDates.sort(); // 日付文字列を昇順ソート
+                        document.getElementById('filter-date-start').value = inquiryDates[0];
+                        document.getElementById('filter-date-end').value = inquiryDates[inquiryDates.length - 1];
+                        // 日付絞り込み基準の初期設定を「問い合わせ日」にする
+                        document.getElementById('filter-date-type').value = 'inquiryDate';
+                    } else {
+                        // 日付が無い場合は「指定なし」にする
+                        document.getElementById('filter-date-type').value = 'none';
+                    }
+
+                    // フィルター項目の初期化と集計
+                    populateFilters(processedData);
+                    applyFiltersAndRender();
+                    
+                    // 完全に完了したためローディングを消す
+                    hideLoading();
+                }, 50);
+
+            } catch (err) {
+                console.error(err);
+                hideLoading();
+                alert('実績データのパース中にエラーが発生しました。ファイル形式を確認してください。');
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    }, 50);
 }
 
 // ヘッダー配列から同義語リストに基づき列インデックスを解決する
@@ -2824,22 +3007,139 @@ function calculateTrialGrade(currentGrade, dateStr, courseType = '', generation 
 // 3. フィルターと集計ロジック
 // ==========================================================================
 function initFilters() {
+    // 管轄・エリアはプログラムでの値書き換え後に一括で applyFiltersAndRender を呼ぶため、除外する
     const filters = ['filter-store', 'filter-purpose', 'filter-grade', 'filter-status', 'filter-date-type', 'filter-date-start', 'filter-date-end'];
     filters.forEach(id => {
         const el = document.getElementById(id);
         if (el) el.addEventListener('change', applyFiltersAndRender);
     });
+
+    // ドロップダウン連動イベントの設定
+    const divisionSelect = document.getElementById('filter-division');
+    const areaSelect = document.getElementById('filter-area');
+    
+    if (divisionSelect) {
+        divisionSelect.addEventListener('change', () => {
+            const divVal = divisionSelect.value;
+            // 選択された管轄に属するエリア区分のみを取得
+            let filteredAreas = [];
+            if (divVal === 'all') {
+                filteredAreas = getUniqueSortedValues(processedData, 'area');
+            } else {
+                const subset = processedData.filter(item => item.division === divVal);
+                filteredAreas = getUniqueSortedValues(subset, 'area');
+            }
+            updateSelectOptions('filter-area', filteredAreas);
+            areaSelect.value = 'all';
+
+            // 教室一覧も連動して絞り込み
+            updateStoresDropdown();
+
+            // 選択肢と値の更新が終わった後に、正しい状態でレンダリングを呼び出す（重要）
+            applyFiltersAndRender();
+        });
+    }
+
+    if (areaSelect) {
+        areaSelect.addEventListener('change', () => {
+            updateStoresDropdown();
+
+            // 選択肢と値の更新が終わった後に、正しい状態でレンダリングを呼び出す（重要）
+            applyFiltersAndRender();
+        });
+    }
+}
+
+// 管轄・エリアの選択状態に応じて教室ドロップダウンの選択肢を連動更新するヘルパー
+function updateStoresDropdown() {
+    const divVal = document.getElementById('filter-division').value;
+    const areaVal = document.getElementById('filter-area').value;
+    const storeSelect = document.getElementById('filter-store');
+    if (!storeSelect) return;
+    
+    let subset = processedData;
+    if (divVal !== 'all') {
+        subset = subset.filter(item => item.division === divVal);
+    }
+    if (areaVal !== 'all') {
+        subset = subset.filter(item => item.area === areaVal);
+    }
+    
+    const storePairs = getUniqueSortedStores(subset);
+    
+    // 現在の選択値を退避
+    const currentStore = storeSelect.value;
+    updateStoreSelectOptions('filter-store', storePairs);
+    
+    // 退避した値が新しい選択肢に含まれていれば復元、なければ「すべて」にする
+    const availableStoreNames = storePairs.map(p => p.name);
+    if (availableStoreNames.includes(currentStore)) {
+        storeSelect.value = currentStore;
+    } else {
+        storeSelect.value = 'all';
+    }
+}
+
+// 教室ドロップダウン専用のオプション更新関数（表示を「教場No. 教室名」にする）
+function updateStoreSelectOptions(id, storePairs) {
+    const select = document.getElementById(id);
+    if (!select) return;
+    select.innerHTML = '<option value="all">すべて</option>';
+    storePairs.forEach(pair => {
+        const opt = document.createElement('option');
+        opt.value = pair.name; // フィルター値は従来通りの教室名
+        opt.textContent = pair.code ? `${pair.code} ${pair.name}` : pair.name; // 表示は「教場No 教室名」
+        select.appendChild(opt);
+    });
+}
+
+// ユニークな教室一覧を教場No.（数値）の昇順で抽出するヘルパー
+function getUniqueSortedStores(data) {
+    const pairs = [];
+    const seen = new Set();
+    
+    data.forEach(item => {
+        if (item.store) {
+            const key = item.storeCode || item.store;
+            if (!seen.has(key)) {
+                seen.add(key);
+                pairs.push({
+                    code: item.storeCode || "",
+                    name: item.store
+                });
+            }
+        }
+    });
+    
+    // 教場Noの数値で昇順ソート（Noが無いものは末尾へ）
+    pairs.sort((a, b) => {
+        if (!a.code && !b.code) return a.name.localeCompare(b.name, 'ja');
+        if (!a.code) return 1;
+        if (!b.code) return -1;
+        const numA = parseInt(a.code, 10);
+        const numB = parseInt(b.code, 10);
+        if (isNaN(numA) && isNaN(numB)) return a.code.localeCompare(b.code);
+        if (isNaN(numA)) return 1;
+        if (isNaN(numB)) return -1;
+        return numA - numB;
+    });
+    
+    return pairs;
 }
 
 // ユニーク値を抽出してフィルターセレクトボックスを生成
 function populateFilters(data) {
-    const stores = getUniqueSortedValues(data, 'store');
+    const divisions = getUniqueSortedValues(data, 'division');
+    const areas = getUniqueSortedValues(data, 'area');
+    const storePairs = getUniqueSortedStores(data);
     const purposes = getUniqueSortedValues(data, 'purpose');
     const grades = getUniqueSortedValues(data, 'trialGrade', sortGrades);
     const statuses = getUniqueSortedValues(data, 'status');
     const courseTypes = getUniqueSortedValues(data, 'courseType');
 
-    updateSelectOptions('filter-store', stores);
+    updateSelectOptions('filter-division', divisions);
+    updateSelectOptions('filter-area', areas);
+    updateStoreSelectOptions('filter-store', storePairs);
     updateSelectOptions('filter-purpose', purposes);
     updateSelectOptions('filter-grade', grades);
     updateSelectOptions('filter-status', statuses);
@@ -2902,6 +3202,8 @@ function updateSelectOptions(id, values) {
 
 // フィルターを適用し、画面全体を再レンダリングする
 function applyFiltersAndRender() {
+    const divisionVal = document.getElementById('filter-division').value;
+    const areaVal = document.getElementById('filter-area').value;
     const storeVal = document.getElementById('filter-store').value;
     const purposeVal = document.getElementById('filter-purpose').value;
     const gradeVal = document.getElementById('filter-grade').value;
@@ -2914,6 +3216,8 @@ function applyFiltersAndRender() {
     const dateEnd = document.getElementById('filter-date-end').value;
 
     allStoreFilteredData = processedData.filter(item => {
+        const matchDivision = (divisionVal === 'all' || item.division === divisionVal);
+        const matchArea = (areaVal === 'all' || item.area === areaVal);
         const matchPurpose = (purposeVal === 'all' || item.purpose === purposeVal);
         const matchGrade = (gradeVal === 'all' || item.trialGrade === gradeVal);
         const matchStatus = (statusVal === 'all' || item.status === statusVal);
@@ -2931,7 +3235,7 @@ function applyFiltersAndRender() {
             }
         }
 
-        return matchPurpose && matchGrade && matchStatus && matchCourse && matchDate;
+        return matchDivision && matchArea && matchPurpose && matchGrade && matchStatus && matchCourse && matchDate;
     });
 
     filteredData = allStoreFilteredData.filter(item => {
@@ -2941,6 +3245,7 @@ function applyFiltersAndRender() {
     renderKPIs(filteredData);
     renderCharts(filteredData);
     renderStoreTable(allStoreFilteredData); // 全教室KPI比較マトリクス用（教室フィルタを無視）
+    renderGradeTable(filteredData); // 学年別KPI比較マトリクス用（全フィルタ連動）
     renderDetailTable(filteredData);
     
     // ファネル分析コメント（インサイト）の生成と表示
@@ -4198,6 +4503,252 @@ function renderDetailTable(data) {
 // 7. 追加要件（エクスポート機能・AIチャット機能）
 // ==========================================================================
 
+// Excel装飾・フィルタ用共通ユーティリティ関数
+function autoFitColumns(ws) {
+    if (!ws || !ws['!ref']) return;
+    const range = XLSX.utils.decode_range(ws['!ref']);
+    const cols = [];
+    for (let c = range.s.c; c <= range.e.c; c++) {
+        let maxLength = 10;
+        for (let r = range.s.r; r <= range.e.r; r++) {
+            const cellAddress = XLSX.utils.encode_cell({ r: r, c: c });
+            const cell = ws[cellAddress];
+            if (cell && cell.v !== undefined && cell.v !== null) {
+                const text = String(cell.v);
+                let len = 0;
+                for (let i = 0; i < text.length; i++) {
+                    len += text.charCodeAt(i) > 255 ? 2.0 : 1.0;
+                }
+                if (len > maxLength) maxLength = len;
+            }
+        }
+        cols.push({ wch: Math.min(maxLength + 3, 50) });
+    }
+    ws['!cols'] = cols;
+}
+
+function addAutoFilter(ws) {
+    if (!ws || !ws['!ref']) return;
+    ws['!autofilter'] = { ref: ws['!ref'] };
+}
+
+function applyStoreTableStyles(ws) {
+    if (!ws || !ws['!ref']) return;
+    const range = XLSX.utils.decode_range(ws['!ref']);
+    
+    const borderStyle = {
+        top: { style: 'thin', color: { rgb: 'E2E8F0' } },
+        bottom: { style: 'thin', color: { rgb: 'E2E8F0' } },
+        left: { style: 'thin', color: { rgb: 'E2E8F0' } },
+        right: { style: 'thin', color: { rgb: 'E2E8F0' } }
+    };
+
+    const rankStyles = {
+        'S': { fill: { fgColor: { rgb: 'FFF2CC' } }, font: { name: 'Meiryo', sz: 10, bold: true, color: { rgb: '7F6000' } } },
+        'A': { fill: { fgColor: { rgb: 'D9E1F2' } }, font: { name: 'Meiryo', sz: 10, bold: true, color: { rgb: '305496' } } },
+        'B': { fill: { fgColor: { rgb: 'F2F2F2' } }, font: { name: 'Meiryo', sz: 10, color: { rgb: '595959' } } },
+        'C': { fill: { fgColor: { rgb: 'FCE4D6' } }, font: { name: 'Meiryo', sz: 10, bold: true, color: { rgb: 'C00000' } } }
+    };
+
+    const highStyle = { fill: { fgColor: { rgb: 'E2F0D9' } }, font: { name: 'Meiryo', sz: 10, color: { rgb: '385723' } } };
+    const lowStyle = { fill: { fgColor: { rgb: 'FCE4D6' } }, font: { name: 'Meiryo', sz: 10, color: { rgb: 'C00000' } } };
+
+    for (let r = range.s.r; r <= range.e.r; r++) {
+        const isHeader = r === range.s.r;
+        const isEven = (r - range.s.r) % 2 === 0;
+        
+        for (let c = range.s.c; c <= range.e.c; c++) {
+            const cellAddress = XLSX.utils.encode_cell({ r: r, c: c });
+            let cell = ws[cellAddress];
+            if (!cell) {
+                ws[cellAddress] = { t: 's', v: '' };
+                cell = ws[cellAddress];
+            }
+            
+            cell.s = {
+                font: { name: 'Meiryo', sz: 10, color: { rgb: '333333' } },
+                border: borderStyle,
+                alignment: { vertical: 'center' }
+            };
+            
+            if (!isHeader && isEven) {
+                cell.s.fill = { fgColor: { rgb: 'F8FAFC' } };
+            }
+            
+            if (isHeader) {
+                cell.s.fill = { fgColor: { rgb: '4F46E5' } };
+                cell.s.font.color = { rgb: 'FFFFFF' };
+                cell.s.font.bold = true;
+                cell.s.alignment.horizontal = 'center';
+            } else {
+                const headerAddress = XLSX.utils.encode_cell({ r: range.s.r, c: c });
+                const headerCell = ws[headerAddress];
+                const headerText = headerCell ? String(headerCell.v) : '';
+                
+                if (['No', '総問合せ数', '体験実施数', '入会数', '即入会数', 'NG数', '退会者数'].includes(headerText)) {
+                    cell.s.alignment.horizontal = 'right';
+                } else if (['体験実施率', '体験入会率', '体験NG率', '問合せ入会率', '即入会率'].includes(headerText)) {
+                    cell.s.alignment.horizontal = 'right';
+                    
+                    const val = parseFloat(String(cell.v).replace('%', ''));
+                    if (!isNaN(val)) {
+                        let courseType = '';
+                        for (let col = range.s.c; col <= range.e.c; col++) {
+                            const hText = String(ws[XLSX.utils.encode_cell({ r: range.s.r, c: col })].v);
+                            if (hText === '受講種別') {
+                                const cCell = ws[XLSX.utils.encode_cell({ r: r, c: col })];
+                                courseType = cCell ? String(cCell.v) : '';
+                                break;
+                            }
+                        }
+
+                        if (courseType && typeof rawData !== 'undefined' && rawData) {
+                            const courseAllData = rawData.filter(item => item.courseType === courseType);
+                            if (courseAllData.length > 0) {
+                                const courseRates = calcRates(courseAllData);
+                                if (headerText === '体験実施率') {
+                                    const diff = val - courseRates.trialRate;
+                                    if (diff >= 5) {
+                                        cell.s.fill = highStyle.fill;
+                                        cell.s.font = Object.assign({}, cell.s.font, highStyle.font);
+                                    } else if (diff <= -5) {
+                                        cell.s.fill = lowStyle.fill;
+                                        cell.s.font = Object.assign({}, cell.s.font, lowStyle.font);
+                                    }
+                                } else if (headerText === '体験入会率') {
+                                    const diff = val - courseRates.trialEnrollRate;
+                                    if (diff >= 5) {
+                                        cell.s.fill = highStyle.fill;
+                                        cell.s.font = Object.assign({}, cell.s.font, highStyle.font);
+                                    } else if (diff <= -5) {
+                                        cell.s.fill = lowStyle.fill;
+                                        cell.s.font = Object.assign({}, cell.s.font, lowStyle.font);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else if (headerText === '総合ランク') {
+                    cell.s.alignment.horizontal = 'center';
+                    const rank = String(cell.v);
+                    if (rankStyles[rank]) {
+                        cell.s.fill = rankStyles[rank].fill;
+                        cell.s.font = Object.assign({}, cell.s.font, rankStyles[rank].font);
+                    }
+                } else if (headerText === '教室名' || headerText === '受講種別') {
+                    cell.s.alignment.horizontal = 'left';
+                } else {
+                    cell.s.alignment.horizontal = 'left';
+                }
+            }
+        }
+    }
+}
+
+function applyDetailTableStyles(ws) {
+    if (!ws || !ws['!ref']) return;
+    const range = XLSX.utils.decode_range(ws['!ref']);
+    
+    const borderStyle = {
+        top: { style: 'thin', color: { rgb: 'E2E8F0' } },
+        bottom: { style: 'thin', color: { rgb: 'E2E8F0' } },
+        left: { style: 'thin', color: { rgb: 'E2E8F0' } },
+        right: { style: 'thin', color: { rgb: 'E2E8F0' } }
+    };
+
+    for (let r = range.s.r; r <= range.e.r; r++) {
+        const isHeader = r === range.s.r;
+        const isEven = (r - range.s.r) % 2 === 0;
+        
+        for (let c = range.s.c; c <= range.e.c; c++) {
+            const cellAddress = XLSX.utils.encode_cell({ r: r, c: c });
+            let cell = ws[cellAddress];
+            if (!cell) {
+                ws[cellAddress] = { t: 's', v: '' };
+                cell = ws[cellAddress];
+            }
+            
+            cell.s = {
+                font: { name: 'Meiryo', sz: 10, color: { rgb: '333333' } },
+                border: borderStyle,
+                alignment: { vertical: 'center' }
+            };
+            
+            if (!isHeader && isEven) {
+                cell.s.fill = { fgColor: { rgb: 'F8FAFC' } };
+            }
+            
+            if (isHeader) {
+                cell.s.fill = { fgColor: { rgb: '4F46E5' } };
+                cell.s.font.color = { rgb: 'FFFFFF' };
+                cell.s.font.bold = true;
+                cell.s.alignment.horizontal = 'center';
+            } else {
+                const headerAddress = XLSX.utils.encode_cell({ r: range.s.r, c: c });
+                const headerCell = ws[headerAddress];
+                const headerText = headerCell ? String(headerCell.v) : '';
+                
+                if (headerText === 'No' || headerText === '受講時間') {
+                    cell.s.alignment.horizontal = 'right';
+                } else if (['問合せ日', '体験日時', '入会日', '受講生ID'].includes(headerText)) {
+                    cell.s.alignment.horizontal = 'center';
+                } else {
+                    cell.s.alignment.horizontal = 'left';
+                }
+            }
+        }
+    }
+}
+
+function applyCommonTableStyles(ws) {
+    if (!ws || !ws['!ref']) return;
+    const range = XLSX.utils.decode_range(ws['!ref']);
+    const borderStyle = {
+        top: { style: 'thin', color: { rgb: 'E2E8F0' } },
+        bottom: { style: 'thin', color: { rgb: 'E2E8F0' } },
+        left: { style: 'thin', color: { rgb: 'E2E8F0' } },
+        right: { style: 'thin', color: { rgb: 'E2E8F0' } }
+    };
+
+    for (let r = range.s.r; r <= range.e.r; r++) {
+        const isHeader = r === range.s.r;
+        const isEven = (r - range.s.r) % 2 === 0;
+        
+        for (let c = range.s.c; c <= range.e.c; c++) {
+            const cellAddress = XLSX.utils.encode_cell({ r: r, c: c });
+            let cell = ws[cellAddress];
+            if (!cell) {
+                ws[cellAddress] = { t: 's', v: '' };
+                cell = ws[cellAddress];
+            }
+            
+            cell.s = {
+                font: { name: 'Meiryo', sz: 10, color: { rgb: '333333' } },
+                border: borderStyle,
+                alignment: { vertical: 'center' }
+            };
+            
+            if (!isHeader && isEven) {
+                cell.s.fill = { fgColor: { rgb: 'F8FAFC' } };
+            }
+            
+            if (isHeader) {
+                cell.s.fill = { fgColor: { rgb: '4F46E5' } };
+                cell.s.font.color = { rgb: 'FFFFFF' };
+                cell.s.font.bold = true;
+                cell.s.alignment.horizontal = 'center';
+            } else {
+                const valStr = String(cell.v).trim();
+                if (valStr.includes('%') || (!isNaN(Number(valStr.replace(/[,%]/g, ''))) && valStr !== '')) {
+                    cell.s.alignment.horizontal = 'right';
+                } else {
+                    cell.s.alignment.horizontal = 'left';
+                }
+            }
+        }
+    }
+}
+
 // Excelへのエクスポート
 function exportStoreTableToExcel() {
     if (currentStoreSummaryList.length === 0) {
@@ -4205,72 +4756,87 @@ function exportStoreTableToExcel() {
         return;
     }
     
-    // エクスポート用データ配列の作成
-    const exportRows = currentStoreSummaryList.map((s, idx) => {
-        // 苦手とする学年のテキスト抽出
-        const closedCount = s.enroll + s.ng;
-        const avgEnrollRate = closedCount > 0 ? (s.enroll / closedCount) : 0;
-        let strugglingGrades = [];
-        const validGradesCount = Object.values(s.grades).filter(counts => (counts.enroll + counts.ng) > 0).length;
-        
-        if (validGradesCount > 1) {
-            for (const [grade, counts] of Object.entries(s.grades)) {
-                const gClosed = counts.enroll + counts.ng;
-                if (gClosed > 0) {
-                    const gradeEnrollRate = counts.enroll / gClosed;
-                    if (gradeEnrollRate <= avgEnrollRate) {
-                        strugglingGrades.push({
-                            grade: grade,
-                            rate: gradeEnrollRate,
-                            enroll: counts.enroll,
-                            trialDone: counts.trialDone
-                        });
+    showLoading('Excelファイルを作成しています...', '教室別集計データを展開・スタイル適用中');
+    
+    setTimeout(() => {
+        try {
+            // エクスポート用データ配列の作成
+            const exportRows = currentStoreSummaryList.map((s, idx) => {
+                // 苦手とする学年のテキスト抽出
+                const closedCount = s.enroll + s.ng;
+                const avgEnrollRate = closedCount > 0 ? (s.enroll / closedCount) : 0;
+                let strugglingGrades = [];
+                const validGradesCount = Object.values(s.grades).filter(counts => (counts.enroll + counts.ng) > 0).length;
+                
+                if (validGradesCount > 1) {
+                    for (const [grade, counts] of Object.entries(s.grades)) {
+                        const gClosed = counts.enroll + counts.ng;
+                        if (gClosed > 0) {
+                            const gradeEnrollRate = counts.enroll / gClosed;
+                            if (gradeEnrollRate <= avgEnrollRate) {
+                                strugglingGrades.push({
+                                    grade: grade,
+                                    rate: gradeEnrollRate,
+                                    enroll: counts.enroll,
+                                    trialDone: counts.trialDone
+                                });
+                            }
+                        }
                     }
                 }
-            }
-        }
 
-        let worstGradeText = 'なし';
-        if (strugglingGrades.length > 0) {
-            strugglingGrades.sort((a, b) => {
-                if (a.rate !== b.rate) return a.rate - b.rate;
-                return b.trialDone - a.trialDone;
+                let worstGradeText = 'なし';
+                if (strugglingGrades.length > 0) {
+                    strugglingGrades.sort((a, b) => {
+                        if (a.rate !== b.rate) return a.rate - b.rate;
+                        return b.trialDone - a.trialDone;
+                    });
+                    worstGradeText = strugglingGrades.map(g => {
+                        const ratePct = (g.rate * 100).toFixed(0);
+                        return `${g.grade}: ${ratePct}% (${g.enroll}/${g.trialDone}件)`;
+                    }).join(', ');
+                }
+
+                return {
+                    'No': idx + 1,
+                    '教室名': s.name,
+                    '受講種別': s.courseType,
+                    '総合ランク': s.rank,
+                    '総問合せ数': s.total,
+                    '体験実施数': s.trialDone,
+                    '体験実施率': `${s.trialRate}%`,
+                    '体験入会率': `${s.trialEnrollRate}%`,
+                    '体験NG率': `${s.trialNgRate}%`,
+                    '入会数': s.enroll,
+                    '問合せ入会率': `${s.totalEnrollRate}%`,
+                    '即入会数': s.immediateEnroll,
+                    '即入会率': `${s.immediateEnrollRate}%`,
+                    'NG数': s.ng,
+                    '退会者数': s.withdraw,
+                    '苦手とする学年 (平均入会率以下)': worstGradeText
+                };
             });
-            worstGradeText = strugglingGrades.map(g => {
-                const ratePct = (g.rate * 100).toFixed(0);
-                return `${g.grade}: ${ratePct}% (${g.enroll}/${g.trialDone}件)`;
-            }).join(', ');
+
+            const ws = XLSX.utils.json_to_sheet(exportRows);
+            applyStoreTableStyles(ws);
+            autoFitColumns(ws);
+            addAutoFilter(ws);
+
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "教室別集計");
+
+            const baseDateInput = document.getElementById('base-date');
+            const dateStr = baseDateInput && baseDateInput.value ? baseDateInput.value : new Date().toISOString().split('T')[0];
+            const fileName = `教室別集計_${dateStr}.xlsx`;
+
+            XLSX.writeFile(wb, fileName);
+        } catch (err) {
+            console.error(err);
+            alert('Excelファイルの作成中にエラーが発生しました。\n' + err.message);
+        } finally {
+            hideLoading();
         }
-
-        return {
-            'No': idx + 1,
-            '教室名': s.name,
-            '受講種別': s.courseType,
-            '総合ランク': s.rank,
-            '総問合せ数': s.total,
-            '体験実施数': s.trialDone,
-            '体験実施率': `${s.trialRate}%`,
-            '体験入会率': `${s.trialEnrollRate}%`,
-            '体験NG率': `${s.trialNgRate}%`,
-            '入会数': s.enroll,
-            '問合せ入会率': `${s.totalEnrollRate}%`,
-            '即入会数': s.immediateEnroll,
-            '即入会率': `${s.immediateEnrollRate}%`,
-            'NG数': s.ng,
-            '退会者数': s.withdraw,
-            '苦手とする学年 (平均入会率以下)': worstGradeText
-        };
-    });
-
-    const ws = XLSX.utils.json_to_sheet(exportRows);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "教室別集計");
-
-    const baseDateInput = document.getElementById('base-date');
-    const dateStr = baseDateInput && baseDateInput.value ? baseDateInput.value : new Date().toISOString().split('T')[0];
-    const fileName = `教室別集計_${dateStr}.xlsx`;
-
-    XLSX.writeFile(wb, fileName);
+    }, 50);
 }
 
 // 生徒詳細のExcelエクスポート
@@ -4280,31 +4846,51 @@ function exportDetailTableToExcel() {
         return;
     }
     
-    // エクスポート用データ配列の作成
-    const exportRows = filteredData.map((item, idx) => ({
-        'No': idx + 1,
-        '受講生ID': item.studentId || '',
-        '氏名': item.displayName || '',
-        '教室名': item.store || '',
-        '体験時学年': item.trialGrade || '',
-        '現在の学年': item.currentGrade || '',
-        '来校目的': item.purpose || '',
-        'ステータス (区分)': item.status || '',
-        '問合せ日': item.inquiryDateStr || '',
-        '体験日時': item.trialDateStr || '',
-        '入会日': item.enrollDateStr || '',
-        '受講時間': item.studyTime !== '' && item.studyTime !== undefined ? item.studyTime : ''
-    }));
+    showLoading('Excelファイルを作成しています...', '生徒データ詳細を展開・スタイル適用中');
+    
+    setTimeout(() => {
+        try {
+            // エクスポート用データ配列の作成
+            const exportRows = filteredData.map((item, idx) => ({
+                'No': idx + 1,
+                '受講生ID': item.studentId || '',
+                '氏名': item.displayName || '',
+                '教室名': item.store || '',
+                '体験時学年': item.trialGrade || '',
+                '現在の学年': item.currentGrade || '',
+                '来校目的': item.purpose || '',
+                'ステータス (区分)': item.status || '',
+                '問合せ日': item.inquiryDateStr || '',
+                '体験日時': item.trialDateStr || '',
+                '入会日': item.enrollDateStr || '',
+                '受講時間': item.studyTime !== '' && item.studyTime !== undefined ? item.studyTime : ''
+            }));
 
-    const ws = XLSX.utils.json_to_sheet(exportRows);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "生徒データ詳細");
+            const ws = XLSX.utils.json_to_sheet(exportRows);
+            applyDetailTableStyles(ws);
+            autoFitColumns(ws);
+            addAutoFilter(ws);
+            
+            // 1行目をウィンドウ枠固定
+            ws['!views'] = [
+                { state: 'frozen', ySplit: 1 }
+            ];
 
-    const baseDateInput = document.getElementById('base-date');
-    const dateStr = baseDateInput && baseDateInput.value ? baseDateInput.value : new Date().toISOString().split('T')[0];
-    const fileName = `生徒データ詳細_${dateStr}.xlsx`;
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "生徒データ詳細");
 
-    XLSX.writeFile(wb, fileName);
+            const baseDateInput = document.getElementById('base-date');
+            const dateStr = baseDateInput && baseDateInput.value ? baseDateInput.value : new Date().toISOString().split('T')[0];
+            const fileName = `生徒データ詳細_${dateStr}.xlsx`;
+
+            XLSX.writeFile(wb, fileName);
+        } catch (err) {
+            console.error(err);
+            alert('Excelファイルの作成中にエラーが発生しました。\n' + err.message);
+        } finally {
+            hideLoading();
+        }
+    }, 50);
 }
 
 // チャートデータ表の切り替えとExcel出力処理
@@ -4389,34 +4975,79 @@ function initChartTableToggles() {
 
     if (exportGradeBtn) {
         exportGradeBtn.addEventListener('click', () => {
-            const table = document.getElementById('chart-grade-table');
-            if (!table) return;
-            const wb = XLSX.utils.table_to_book(table, {sheet: "学年別集計"});
-            const baseDateInput = document.getElementById('base-date');
-            const dateStr = baseDateInput && baseDateInput.value ? baseDateInput.value : new Date().toISOString().split('T')[0];
-            XLSX.writeFile(wb, `学年別集計_${dateStr}.xlsx`);
+            showLoading('Excelファイルを作成しています...', '学年別集計テーブルを書き出し中');
+            setTimeout(() => {
+                try {
+                    const table = document.getElementById('chart-grade-table');
+                    if (!table) return;
+                    const ws = XLSX.utils.table_to_sheet(table);
+                    applyCommonTableStyles(ws);
+                    autoFitColumns(ws);
+                    addAutoFilter(ws);
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, "学年別集計");
+                    const baseDateInput = document.getElementById('base-date');
+                    const dateStr = baseDateInput && baseDateInput.value ? baseDateInput.value : new Date().toISOString().split('T')[0];
+                    XLSX.writeFile(wb, `学年別集計_${dateStr}.xlsx`);
+                } catch (err) {
+                    console.error(err);
+                    alert('Excelファイルの作成中にエラーが発生しました。');
+                } finally {
+                    hideLoading();
+                }
+            }, 50);
         });
     }
 
     if (exportPurposeBtn) {
         exportPurposeBtn.addEventListener('click', () => {
-            const table = document.getElementById('chart-purpose-table');
-            if (!table) return;
-            const wb = XLSX.utils.table_to_book(table, {sheet: "来校目的別集計"});
-            const baseDateInput = document.getElementById('base-date');
-            const dateStr = baseDateInput && baseDateInput.value ? baseDateInput.value : new Date().toISOString().split('T')[0];
-            XLSX.writeFile(wb, `来校目的別集計_${dateStr}.xlsx`);
+            showLoading('Excelファイルを作成しています...', '来校目的別集計テーブルを書き出し中');
+            setTimeout(() => {
+                try {
+                    const table = document.getElementById('chart-purpose-table');
+                    if (!table) return;
+                    const ws = XLSX.utils.table_to_sheet(table);
+                    applyCommonTableStyles(ws);
+                    autoFitColumns(ws);
+                    addAutoFilter(ws);
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, "来校目的別集計");
+                    const baseDateInput = document.getElementById('base-date');
+                    const dateStr = baseDateInput && baseDateInput.value ? baseDateInput.value : new Date().toISOString().split('T')[0];
+                    XLSX.writeFile(wb, `来校目的別集計_${dateStr}.xlsx`);
+                } catch (err) {
+                    console.error(err);
+                    alert('Excelファイルの作成中にエラーが発生しました。');
+                } finally {
+                    hideLoading();
+                }
+            }, 50);
         });
     }
 
     if (exportYoyBtn) {
         exportYoyBtn.addEventListener('click', () => {
-            const table = document.getElementById('chart-yoy-table');
-            if (!table) return;
-            const wb = XLSX.utils.table_to_book(table, {sheet: "前年比較集計"});
-            const baseDateInput = document.getElementById('base-date');
-            const dateStr = baseDateInput && baseDateInput.value ? baseDateInput.value : new Date().toISOString().split('T')[0];
-            XLSX.writeFile(wb, `前年比較集計_${dateStr}.xlsx`);
+            showLoading('Excelファイルを作成しています...', '前年比較集計テーブルを書き出し中');
+            setTimeout(() => {
+                try {
+                    const table = document.getElementById('chart-yoy-table');
+                    if (!table) return;
+                    const ws = XLSX.utils.table_to_sheet(table);
+                    applyCommonTableStyles(ws);
+                    autoFitColumns(ws);
+                    addAutoFilter(ws);
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, "前年比較集計");
+                    const baseDateInput = document.getElementById('base-date');
+                    const dateStr = baseDateInput && baseDateInput.value ? baseDateInput.value : new Date().toISOString().split('T')[0];
+                    XLSX.writeFile(wb, `前年比較集計_${dateStr}.xlsx`);
+                } catch (err) {
+                    console.error(err);
+                    alert('Excelファイルの作成中にエラーが発生しました。');
+                } finally {
+                    hideLoading();
+                }
+            }, 50);
         });
     }
 }
@@ -4611,6 +5242,663 @@ function exportMessageTemplate() {
 
     XLSX.writeFile(wb, 'メッセージ設定テンプレート.xlsx');
 }
+
+// ==========================================================================
+// 4. 学年別KPI比較マトリクス
+// ==========================================================================
+function renderGradeTable(data) {
+    const tbody = document.querySelector('#grade-table tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    // 学年×受講種別ごとに集計
+    const gradeSummary = {};
+    data.forEach(item => {
+        const grade = item.trialGrade || '(空白)';
+        const course = item.courseType || '(空白)';
+        const key = `${grade}::${course}`;
+        
+        if (!gradeSummary[key]) {
+            gradeSummary[key] = {
+                grade: grade,
+                courseType: course,
+                total: 0,
+                trialDone: 0,
+                enroll: 0,
+                immediateEnroll: 0,
+                ng: 0,
+                withdraw: 0
+            };
+        }
+
+        const summary = gradeSummary[key];
+        summary.total++;
+        
+        // 体験実施数 (体験キャンセル、体験予約に至らず、問合せ を除く)
+        const isNotTrial = ['問合せ', '体験キャンセル', '体験予約に至らず'].includes(item.status);
+        if (!isNotTrial) {
+            summary.trialDone++;
+        }
+
+        // 入会数 (ステータスが '入会済（受講中）' または '退会済')
+        const isEnroll = ['入会済（受講中）', '退会済', '受講生', '退会生'].includes(item.status);
+        if (isEnroll) {
+            summary.enroll++;
+        }
+
+        // 即入会数 (体験日と入会日が同日)
+        const isImmediate = item.status !== '問合せ' && item.trialDateStr && item.enrollDateStr && (item.trialDateStr === item.enrollDateStr);
+        if (isImmediate) {
+            summary.immediateEnroll++;
+        }
+
+        // NG数 (体験後NG、問合せ後NGなど)
+        const isNg = ['体験予約に至らず', '体験後検討中', '体験キャンセル', '問合せ', 'NG', '持ち帰り', '入会キャンセル'].includes(item.status) || 
+                     (!isEnroll && !item.enrollDateStr);
+        if (isNg) {
+            summary.ng++;
+        }
+
+        // 退会者数
+        if (item.status === '退会済' || item.status === '退会生') {
+            summary.withdraw++;
+        }
+    });
+
+    const summaryList = Object.values(gradeSummary);
+
+    // 比率の計算
+    summaryList.forEach(sum => {
+        sum.trialRate = sum.total > 0 ? (sum.trialDone / sum.total * 100) : 0;
+        sum.trialEnrollRate = sum.trialDone > 0 ? (sum.enroll / sum.trialDone * 100) : 0;
+        sum.trialNgRate = sum.trialDone > 0 ? ((sum.trialDone - sum.enroll) / sum.trialDone * 100) : 0;
+        if (sum.trialNgRate < 0) sum.trialNgRate = 0; // マイナス値防ぎ
+        sum.totalEnrollRate = sum.total > 0 ? (sum.enroll / sum.total * 100) : 0;
+        sum.immediateEnrollRate = sum.enroll > 0 ? (sum.immediateEnroll / sum.enroll * 100) : 0;
+    });
+
+    // ソート処理
+    const sortKey = gradeTableSort.key;
+    const isAsc = gradeTableSort.direction === 'asc';
+    
+    summaryList.sort((a, b) => {
+        let valA = a[sortKey];
+        let valB = b[sortKey];
+        
+        if (sortKey === 'grade') {
+            const idxA = sortGrades(a.grade, b.grade);
+            return isAsc ? idxA : -idxA;
+        }
+        
+        if (typeof valA === 'string') {
+            return isAsc ? valA.localeCompare(valB, 'ja') : valB.localeCompare(valA, 'ja');
+        }
+        
+        return isAsc ? valA - valB : valB - valA;
+    });
+
+    // Excelエクスポート用にグローバル変数へ保持
+    currentGradeSummaryList = JSON.parse(JSON.stringify(summaryList));
+
+    // 各列の平均値算出（色分け用）
+    const count = summaryList.length || 1;
+    let sumTrialRate = 0, sumTrialEnrollRate = 0, sumTotalEnrollRate = 0, sumImmediateEnrollRate = 0;
+    summaryList.forEach(s => {
+        sumTrialRate += s.trialRate;
+        sumTrialEnrollRate += s.trialEnrollRate;
+        sumTotalEnrollRate += s.totalEnrollRate;
+        sumImmediateEnrollRate += s.immediateEnrollRate;
+    });
+    
+    const avg = {
+        trialRate: sumTrialRate / count,
+        trialEnrollRate: sumTrialEnrollRate / count,
+        totalEnrollRate: sumTotalEnrollRate / count,
+        immediateEnrollRate: sumImmediateEnrollRate / count
+    };
+
+    // 表へのレンダリングと色分け
+    summaryList.forEach(sum => {
+        const tr = document.createElement('tr');
+        
+        // 平均値との比較によるセルクラス決定
+        const getCellClass = (val, avgVal) => {
+            if (val > avgVal) return 'cell-above';
+            if (val < avgVal) return 'cell-below';
+            return '';
+        };
+
+        tr.innerHTML = `
+            <td style="font-weight: bold;">${sum.grade}</td>
+            <td>${sum.courseType}</td>
+            <td class="text-right" style="font-weight: 500;">${sum.total.toLocaleString()}</td>
+            <td class="text-right">${sum.trialDone.toLocaleString()}</td>
+            <td class="text-right ${getCellClass(sum.trialRate, avg.trialRate)}">${sum.trialRate.toFixed(1)}%</td>
+            <td class="text-right ${getCellClass(sum.trialEnrollRate, avg.trialEnrollRate)}">${sum.trialEnrollRate.toFixed(1)}%</td>
+            <td class="text-right">${sum.trialNgRate.toFixed(1)}%</td>
+            <td class="text-right" style="font-weight: 500;">${sum.enroll.toLocaleString()}</td>
+            <td class="text-right ${getCellClass(sum.totalEnrollRate, avg.totalEnrollRate)}">${sum.totalEnrollRate.toFixed(1)}%</td>
+            <td class="text-right">${sum.immediateEnroll.toLocaleString()}</td>
+            <td class="text-right ${getCellClass(sum.immediateEnrollRate, avg.immediateEnrollRate)}">${sum.immediateEnrollRate.toFixed(1)}%</td>
+            <td class="text-right">${sum.ng.toLocaleString()}</td>
+            <td class="text-right">${sum.withdraw.toLocaleString()}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    // ソートヘッダーUIの更新
+    updateGradeSortHeaderUI();
+}
+
+function initGradeTableSort() {
+    const headers = document.querySelectorAll('#grade-table th[data-sort-grade]');
+    headers.forEach(th => {
+        th.addEventListener('click', () => {
+            const key = th.getAttribute('data-sort-grade');
+            if (gradeTableSort.key === key) {
+                gradeTableSort.direction = gradeTableSort.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                gradeTableSort.key = key;
+                gradeTableSort.direction = 'desc'; // デフォルトは降順
+            }
+            
+            // 再描画
+            renderGradeTable(filteredData);
+        });
+    });
+}
+
+function updateGradeSortHeaderUI() {
+    const headers = document.querySelectorAll('#grade-table th[data-sort-grade]');
+    headers.forEach(th => {
+        const key = th.getAttribute('data-sort-grade');
+        const iconSpan = th.querySelector('.sort-icon');
+        if (!iconSpan) return;
+        
+        if (gradeTableSort.key === key) {
+            iconSpan.textContent = gradeTableSort.direction === 'asc' ? ' ▲' : ' ▼';
+        } else {
+            iconSpan.textContent = '';
+        }
+    });
+}
+
+function exportGradeTableToExcel() {
+    if (currentGradeSummaryList.length === 0) {
+        alert('出力するデータがありません。先に実績データをロードしてください。');
+        return;
+    }
+
+    showLoading('学年別KPIマトリクスのExcelファイルを作成しています...');
+
+    setTimeout(() => {
+        try {
+            // Excel用データの生成
+            const wb = XLSX.utils.book_new();
+            
+            // ヘッダー行定義
+            const headerRow = [
+                "学年", "受講種別", "総問合せ数", "体験実施数", "体験実施率",
+                "体験入会率", "体験NG率", "入会数", "問合せ入会率",
+                "即入会数", "即入会率", "NG数 (全体比)", "退会者数"
+            ];
+
+            const rows = [headerRow];
+
+            // 平均値の計算（色分け用に必要）
+            const count = currentGradeSummaryList.length || 1;
+            let sumTrialRate = 0, sumTrialEnrollRate = 0, sumTotalEnrollRate = 0, sumImmediateEnrollRate = 0;
+            currentGradeSummaryList.forEach(s => {
+                sumTrialRate += s.trialRate;
+                sumTrialEnrollRate += s.trialEnrollRate;
+                sumTotalEnrollRate += s.totalEnrollRate;
+                sumImmediateEnrollRate += s.immediateEnrollRate;
+            });
+            const avg = {
+                trialRate: sumTrialRate / count,
+                trialEnrollRate: sumTrialEnrollRate / count,
+                totalEnrollRate: sumTotalEnrollRate / count,
+                immediateEnrollRate: sumImmediateEnrollRate / count
+            };
+
+            // データ行の書き出し
+            currentGradeSummaryList.forEach(sum => {
+                rows.push([
+                    sum.grade,
+                    sum.courseType,
+                    sum.total,
+                    sum.trialDone,
+                    sum.trialRate / 100,       // Excel側では割合は小数表記（%書式適用）
+                    sum.trialEnrollRate / 100,
+                    sum.trialNgRate / 100,
+                    sum.enroll,
+                    sum.totalEnrollRate / 100,
+                    sum.immediateEnroll,
+                    sum.immediateEnrollRate / 100,
+                    sum.ng,
+                    sum.withdraw
+                ]);
+            });
+
+            // 最終行に平均行を追加
+            const avgRow = [
+                "平均（学年別平均）",
+                "",
+                Math.round(currentGradeSummaryList.reduce((acc, c) => acc + c.total, 0) / count),
+                Math.round(currentGradeSummaryList.reduce((acc, c) => acc + c.trialDone, 0) / count),
+                avg.trialRate / 100,
+                avg.trialEnrollRate / 100,
+                Math.round(currentGradeSummaryList.reduce((acc, c) => acc + c.trialNgRate, 0) / count) / 100,
+                Math.round(currentGradeSummaryList.reduce((acc, c) => acc + c.enroll, 0) / count),
+                avg.totalEnrollRate / 100,
+                Math.round(currentGradeSummaryList.reduce((acc, c) => acc + c.immediateEnroll, 0) / count),
+                avg.immediateEnrollRate / 100,
+                Math.round(currentGradeSummaryList.reduce((acc, c) => acc + c.ng, 0) / count),
+                Math.round(currentGradeSummaryList.reduce((acc, c) => acc + c.withdraw, 0) / count)
+            ];
+            rows.push(avgRow);
+
+            const ws = XLSX.utils.aoa_to_sheet(rows);
+
+            // スタイルの設定
+            const range = XLSX.utils.decode_range(ws['!ref']);
+            
+            // 列幅設定
+            ws['!cols'] = [
+                { wch: 18 }, // 学年
+                { wch: 18 }, // 受講種別
+                { wch: 12 }, // 総問合せ数
+                { wch: 12 }, // 体験実施数
+                { wch: 12 }, // 体験実施率
+                { wch: 12 }, // 体験入会率
+                { wch: 12 }, // 体験NG率
+                { wch: 12 }, // 入会数
+                { wch: 12 }, // 問合せ入会率
+                { wch: 12 }, // 即入会数
+                { wch: 12 }, // 即入会率
+                { wch: 14 }, // NG数
+                { wch: 12 }  // 退会者数
+            ];
+
+            // 1行目の高さ
+            ws['!rows'] = [{ hpt: 26 }];
+
+            // 各セルの書式と装飾の適用
+            for (let r = range.s.r; r <= range.e.r; r++) {
+                for (let c = range.s.c; c <= range.e.c; c++) {
+                    const cellRef = XLSX.utils.encode_cell({ r: r, c: c });
+                    const cell = ws[cellRef];
+                    if (!cell) continue;
+
+                    // 基本フォント設定
+                    cell.s = {
+                        font: { name: 'Segoe UI', sz: 10, color: { rgb: '333333' } },
+                        alignment: { vertical: 'center', horizontal: 'left' },
+                        border: {
+                            top: { style: 'thin', color: { rgb: 'E5E7EB' } },
+                            bottom: { style: 'thin', color: { rgb: 'E5E7EB' } },
+                            left: { style: 'thin', color: { rgb: 'E5E7EB' } },
+                            right: { style: 'thin', color: { rgb: 'E5E7EB' } }
+                        }
+                    };
+
+                    // ヘッダー行 (1行目)
+                    if (r === 0) {
+                        cell.s.fill = { fgColor: { rgb: '1E3A8A' } }; // ネイビー
+                        cell.s.font = { name: 'Segoe UI', sz: 10, bold: true, color: { rgb: 'FFFFFF' } };
+                        cell.s.alignment = { vertical: 'center', horizontal: 'center', wrapText: true };
+                        cell.s.border = {
+                            top: { style: 'medium', color: { rgb: '1E3A8A' } },
+                            bottom: { style: 'medium', color: { rgb: '1D4ED8' } }
+                        };
+                        continue;
+                    }
+
+                    // 数値列は右寄せ
+                    if (c >= 2) {
+                        cell.s.alignment.horizontal = 'right';
+                    }
+
+                    // 最終行（平均・集計行）
+                    const isLastRow = (r === range.e.r);
+                    if (isLastRow) {
+                        cell.s.fill = { fgColor: { rgb: 'F1F5F9' } };
+                        cell.s.font.bold = true;
+                        cell.s.border = {
+                            top: { style: 'medium', color: { rgb: '94A3B8' } },
+                            bottom: { style: 'double', color: { rgb: '475569' } }
+                        };
+                    }
+
+                    // 書式の適用
+                    if (c === 2 || c === 3 || c === 7 || c === 9 || c === 11 || c === 12) {
+                        // 整数（問合せ数、体験実施数、入会数、即入会数、NG数、退会数）
+                        cell.z = '#,##0';
+                    } else if (c === 4 || c === 5 || c === 6 || c === 8 || c === 10) {
+                        // パーセンテージ
+                        cell.z = '0.0%';
+                        
+                        // データ行のみ平均比較で色分け（最終行は除く）
+                        if (!isLastRow) {
+                            const val = cell.v * 100; // パーセント値に復元
+                            let targetAvg = 0;
+                            if (c === 4) targetAvg = avg.trialRate;
+                            if (c === 5) targetAvg = avg.trialEnrollRate;
+                            if (c === 8) targetAvg = avg.totalEnrollRate;
+                            if (c === 10) targetAvg = avg.immediateEnrollRate;
+                            
+                            // 平均比評価
+                            if (targetAvg > 0) {
+                                if (val > targetAvg) {
+                                    // 平均より高い：薄い緑
+                                    cell.s.fill = { fgColor: { rgb: 'ECFDF5' } };
+                                    cell.s.font.color = { rgb: '065F46' };
+                                } else if (val < targetAvg) {
+                                    // 平均より低い：薄い赤
+                                    cell.s.fill = { fgColor: { rgb: 'FEF2F2' } };
+                                    cell.s.font.color = { rgb: '991B1B' };
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            XLSX.utils.book_append_sheet(wb, ws, "学年別KPI比較");
+            
+            // ファイルの保存
+            const dateStr = new Date().toISOString().slice(0,10).replace(/-/g, "");
+            XLSX.writeFile(wb, `学年別KPI比較マトリクス_${dateStr}.xlsx`);
+            hideLoading();
+
+        } catch (err) {
+            console.error(err);
+            hideLoading();
+            alert('Excelファイルの出力中にエラーが発生しました。');
+        }
+    }, 50);
+}
+
+function exportGradeAllStoresTableToExcel() {
+    if (allStoreFilteredData.length === 0) {
+        alert('出力するデータがありません。先に実績データをロードしてください。');
+        return;
+    }
+
+    showLoading('全教室の学年別KPI一括Excelファイルを作成しています...');
+
+    setTimeout(() => {
+        try {
+            // 教室×学年×受講種別ごとに集計
+            const summaryMap = {};
+            allStoreFilteredData.forEach(item => {
+                const storeCode = item.storeCode || "";
+                const store = item.store || "(不明)";
+                const grade = item.trialGrade || "(空白)";
+                const course = item.courseType || "(空白)";
+                const key = `${storeCode}::${store}::${grade}::${course}`;
+                
+                if (!summaryMap[key]) {
+                    summaryMap[key] = {
+                        storeCode: storeCode,
+                        store: store,
+                        grade: grade,
+                        courseType: course,
+                        total: 0,
+                        trialDone: 0,
+                        enroll: 0,
+                        immediateEnroll: 0,
+                        ng: 0,
+                        withdraw: 0
+                    };
+                }
+
+                const sum = summaryMap[key];
+                sum.total++;
+
+                // 体験実施数
+                const isNotTrial = ['問合せ', '体験キャンセル', '体験予約に至らず'].includes(item.status);
+                if (!isNotTrial) {
+                    sum.trialDone++;
+                }
+
+                // 入会数
+                const isEnroll = ['入会済（受講中）', '退会済', '受講生', '退会生'].includes(item.status);
+                if (isEnroll) {
+                    sum.enroll++;
+                }
+
+                // 即入会数
+                const isImmediate = item.status !== '問合せ' && item.trialDateStr && item.enrollDateStr && (item.trialDateStr === item.enrollDateStr);
+                if (isImmediate) {
+                    sum.immediateEnroll++;
+                }
+
+                // NG数
+                const isNg = ['体験予約に至らず', '体験後検討中', '体験キャンセル', '問合せ', 'NG', '持ち帰り', '入会キャンセル'].includes(item.status) || 
+                             (!isEnroll && !item.enrollDateStr);
+                if (isNg) {
+                    sum.ng++;
+                }
+
+                // 退会数
+                if (item.status === '退会済' || item.status === '退会生') {
+                    sum.withdraw++;
+                }
+            });
+
+            const summaryList = Object.values(summaryMap);
+
+            // 各種比率の計算
+            summaryList.forEach(sum => {
+                sum.trialRate = sum.total > 0 ? (sum.trialDone / sum.total * 100) : 0;
+                sum.trialEnrollRate = sum.trialDone > 0 ? (sum.enroll / sum.trialDone * 100) : 0;
+                sum.trialNgRate = sum.trialDone > 0 ? ((sum.trialDone - sum.enroll) / sum.trialDone * 100) : 0;
+                if (sum.trialNgRate < 0) sum.trialNgRate = 0;
+                sum.totalEnrollRate = sum.total > 0 ? (sum.enroll / sum.total * 100) : 0;
+                sum.immediateEnrollRate = sum.enroll > 0 ? (sum.immediateEnroll / sum.enroll * 100) : 0;
+            });
+
+            // ソート処理
+            summaryList.sort((a, b) => {
+                // 1. 教場No比較
+                if (!a.storeCode && !b.storeCode) {
+                    const compStore = a.store.localeCompare(b.store, 'ja');
+                    if (compStore !== 0) return compStore;
+                } else if (!a.storeCode) {
+                    return 1;
+                } else if (!b.storeCode) {
+                    return -1;
+                } else {
+                    const numA = parseInt(a.storeCode, 10);
+                    const numB = parseInt(b.storeCode, 10);
+                    const isNaNA = isNaN(numA);
+                    const isNaNB = isNaN(numB);
+                    if (!isNaNA && !isNaNB) {
+                        const compNo = numA - numB;
+                        if (compNo !== 0) return compNo;
+                    } else if (isNaNA && !isNaNB) {
+                        return 1;
+                    } else if (!isNaNA && isNaNB) {
+                        return -1;
+                    } else {
+                        const compStr = a.storeCode.localeCompare(b.storeCode);
+                        if (compStr !== 0) return compStr;
+                    }
+                }
+
+                // 2. 学年順比較
+                const compGrade = sortGrades(a.grade, b.grade);
+                if (compGrade !== 0) return compGrade;
+
+                // 3. 受講種別比較
+                return a.courseType.localeCompare(b.courseType, 'ja');
+            });
+
+            // コース別の全体平均を算出（色分け用基準値）
+            const courseStats = {};
+            summaryList.forEach(s => {
+                const c = s.courseType;
+                if (!courseStats[c]) {
+                    courseStats[c] = { count: 0, trialRate: 0, trialEnrollRate: 0, totalEnrollRate: 0, immediateEnrollRate: 0 };
+                }
+                const stat = courseStats[c];
+                stat.count++;
+                stat.trialRate += s.trialRate;
+                stat.trialEnrollRate += s.trialEnrollRate;
+                stat.totalEnrollRate += s.totalEnrollRate;
+                stat.immediateEnrollRate += s.immediateEnrollRate;
+            });
+            Object.keys(courseStats).forEach(c => {
+                const stat = courseStats[c];
+                const ct = stat.count || 1;
+                stat.avgTrialRate = stat.trialRate / ct;
+                stat.avgTrialEnrollRate = stat.trialEnrollRate / ct;
+                stat.avgTotalEnrollRate = stat.totalEnrollRate / ct;
+                stat.avgImmediateEnrollRate = stat.immediateEnrollRate / ct;
+            });
+
+            // Excel用データの生成
+            const wb = XLSX.utils.book_new();
+            
+            // ヘッダー定義
+            const headerRow = [
+                "教場No", "教室名", "学年", "受講種別", "総問合せ数", "体験実施数", "体験実施率",
+                "体験入会率", "体験NG率", "入会数", "問合せ入会率",
+                "即入会数", "即入会率", "NG数 (全体比)", "退会者数"
+            ];
+            const rows = [headerRow];
+
+            summaryList.forEach(sum => {
+                rows.push([
+                    sum.storeCode,
+                    sum.store,
+                    sum.grade,
+                    sum.courseType,
+                    sum.total,
+                    sum.trialDone,
+                    sum.trialRate / 100,
+                    sum.trialEnrollRate / 100,
+                    sum.trialNgRate / 100,
+                    sum.enroll,
+                    sum.totalEnrollRate / 100,
+                    sum.immediateEnroll,
+                    sum.immediateEnrollRate / 100,
+                    sum.ng,
+                    sum.withdraw
+                ]);
+            });
+
+            const ws = XLSX.utils.aoa_to_sheet(rows);
+            const range = XLSX.utils.decode_range(ws['!ref']);
+
+            // 列幅の設定
+            ws['!cols'] = [
+                { wch: 10 }, // 教場No
+                { wch: 18 }, // 教室名
+                { wch: 16 }, // 学年
+                { wch: 16 }, // 受講種別
+                { wch: 12 }, // 総問合せ数
+                { wch: 12 }, // 体験実施数
+                { wch: 12 }, // 体験実施率
+                { wch: 12 }, // 体験入会率
+                { wch: 12 }, // 体験NG率
+                { wch: 12 }, // 入会数
+                { wch: 12 }, // 問合せ入会率
+                { wch: 12 }, // 即入会数
+                { wch: 12 }, // 即入会率
+                { wch: 14 }, // NG数
+                { wch: 12 }  // 退会者数
+            ];
+
+            ws['!rows'] = [{ hpt: 26 }]; // ヘッダー行高さ
+
+            // セルの装飾と書式設定
+            for (let r = range.s.r; r <= range.e.r; r++) {
+                for (let c = range.s.c; c <= range.e.c; c++) {
+                    const cellRef = XLSX.utils.encode_cell({ r: r, c: c });
+                    const cell = ws[cellRef];
+                    if (!cell) continue;
+
+                    // 基本フォント
+                    cell.s = {
+                        font: { name: 'Segoe UI', sz: 10, color: { rgb: '333333' } },
+                        alignment: { vertical: 'center', horizontal: 'left' },
+                        border: {
+                            top: { style: 'thin', color: { rgb: 'E5E7EB' } },
+                            bottom: { style: 'thin', color: { rgb: 'E5E7EB' } },
+                            left: { style: 'thin', color: { rgb: 'E5E7EB' } },
+                            right: { style: 'thin', color: { rgb: 'E5E7EB' } }
+                        }
+                    };
+
+                    // ヘッダー行 (1行目)
+                    if (r === 0) {
+                        cell.s.fill = { fgColor: { rgb: '1E3A8A' } }; // ネイビー
+                        cell.s.font = { name: 'Segoe UI', sz: 10, bold: true, color: { rgb: 'FFFFFF' } };
+                        cell.s.alignment = { vertical: 'center', horizontal: 'center', wrapText: true };
+                        cell.s.border = {
+                            top: { style: 'medium', color: { rgb: '1E3A8A' } },
+                            bottom: { style: 'medium', color: { rgb: '1D4ED8' } }
+                        };
+                        continue;
+                    }
+
+                    // 数値列は右寄せ
+                    if (c >= 4) {
+                        cell.s.alignment.horizontal = 'right';
+                    } else if (c === 0) {
+                        // 教場Noは中央寄せ
+                        cell.s.alignment.horizontal = 'center';
+                    }
+
+                    // 書式の適用
+                    if (c === 4 || c === 5 || c === 9 || c === 11 || c === 13 || c === 14) {
+                        cell.z = '#,##0';
+                    } else if (c === 6 || c === 7 || c === 8 || c === 10 || c === 12) {
+                        cell.z = '0.0%';
+                        
+                        // コース別の全店平均と比較して色分け
+                        const rowData = summaryList[r - 1]; // headerRowがあるので r-1
+                        const courseType = rowData.courseType;
+                        const stats = courseStats[courseType];
+                        
+                        if (stats) {
+                            const val = cell.v * 100;
+                            let targetAvg = 0;
+                            if (c === 6) targetAvg = stats.avgTrialRate;
+                            if (c === 7) targetAvg = stats.avgTrialEnrollRate;
+                            if (c === 10) targetAvg = stats.avgTotalEnrollRate;
+                            if (c === 12) targetAvg = stats.avgImmediateEnrollRate;
+
+                            if (targetAvg > 0) {
+                                if (val > targetAvg) {
+                                    cell.s.fill = { fgColor: { rgb: 'ECFDF5' } };
+                                    cell.s.font.color = { rgb: '065F46' };
+                                } else if (val < targetAvg) {
+                                    cell.s.fill = { fgColor: { rgb: 'FEF2F2' } };
+                                    cell.s.font.color = { rgb: '991B1B' };
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            XLSX.utils.book_append_sheet(wb, ws, "全教室学年別KPI");
+            
+            const dateStr = new Date().toISOString().slice(0,10).replace(/-/g, "");
+            XLSX.writeFile(wb, `全教室学年別KPI一括出力_${dateStr}.xlsx`);
+            hideLoading();
+
+        } catch (err) {
+            console.error(err);
+            hideLoading();
+            alert('全教室分のExcel出力中にエラーが発生しました。');
+        }
+    }, 50);
+}
+
 
 </script>
 </body>
