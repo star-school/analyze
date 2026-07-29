@@ -2096,40 +2096,71 @@ header {
 
     <!-- マニュアルモーダル -->
     <div id="manual-modal" class="modal-overlay">
-        <div class="modal-content">
-            <button class="modal-close" id="close-manual-btn">&times;</button>
-            <div style="line-height: 1.6; font-size: 0.95rem; color: var(--text-primary);">
-                <h2 style="margin-bottom: 20px; font-size: 1.4rem; border-bottom: 2px solid var(--border); padding-bottom: 10px;">📊 入会対応分析ツール 使い方マニュアル</h2>
+        <div class="modal-content" style="max-width: 720px; width: 90%; max-height: 85vh; overflow-y: auto; padding: 30px; border-radius: var(--radius-md); box-shadow: var(--shadow-lg); background: var(--surface); position: relative; border: 1px solid var(--border);">
+            <button class="modal-close" id="close-manual-btn" style="position: absolute; top: 15px; right: 20px; background: transparent; border: none; font-size: 1.8rem; color: var(--text-muted); cursor: pointer; transition: color 0.2s;">&times;</button>
+            <div style="line-height: 1.7; font-size: 0.95rem; color: var(--text-primary); font-family: 'Noto Sans JP', sans-serif;">
+                <h2 style="margin-bottom: 25px; font-size: 1.5rem; border-bottom: 2px solid var(--primary); padding-bottom: 12px; color: var(--primary); display: flex; align-items: center; gap: 8px;">
+                    📊 入会対応分析ツール 使い方マニュアル
+                </h2>
                 
-                <h3 style="margin-top: 20px; color: var(--primary);">💡 1. このツールでできること</h3>
-                <p>システムから出力された「受講生一覧」のExcelファイルを読み込ませるだけで、<strong>面倒な集計作業やグラフ作成をすべて自動</strong>で行ってくれるツールです。</p>
-                <ul style="margin-left: 20px; margin-bottom: 15px;">
-                    <li><strong>「体験に来た人のうち、何％が入会したか」</strong> が一目でわかります。</li>
-                    <li>学年別、来校目的別、教室別の傾向に加え、<strong>過去の複数年（3〜5年以上）の月ごとの推移比較</strong>がグラフや表で可視化されます。</li>
-                    <li>情報は外部のサーバーに送らず、ご自身のパソコン内（ブラウザ上）で処理するため安全です。</li>
+                <!-- ユーザー操作の流れ（図式フロー） -->
+                <h3 style="margin-top: 25px; font-size: 1.1rem; color: var(--text-primary); border-left: 4px solid var(--secondary); padding-left: 10px; margin-bottom: 15px;">🔄 ツール利用の基本フロー</h3>
+                <div style="background: var(--background); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-bottom: 25px; font-family: monospace, 'Courier New'; line-height: 1.4; overflow-x: auto; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 0.85rem;">
+                        <div style="background: var(--surface); border: 1px solid var(--border); padding: 8px 16px; border-radius: 20px; font-weight: bold; color: var(--primary);">① データの準備</div>
+                        <div style="color: var(--text-muted); text-align: center;">└─ 教室リストCSV (フォルダ直下) &amp; 実績Excel を用意</div>
+                        <div style="color: var(--primary); font-weight: bold; font-size: 1.1rem;">↓</div>
+                        <div style="background: var(--surface); border: 1px solid var(--border); padding: 8px 16px; border-radius: 20px; font-weight: bold; color: var(--primary);">② ツールの起動</div>
+                        <div style="color: var(--text-muted); text-align: center;">└─ 「入会対応分析ツール_軽量版.html」をダブルクリック</div>
+                        <div style="color: var(--primary); font-weight: bold; font-size: 1.1rem;">↓</div>
+                        <div style="background: var(--surface); border: 1px solid var(--border); padding: 8px 16px; border-radius: 20px; font-weight: bold; color: var(--primary);">③ 実績Excelの読み込み</div>
+                        <div style="color: var(--text-muted); text-align: center;">├─ ドロップエリアにドラッグ＆ドロップ</div>
+                        <div style="color: var(--text-muted); text-align: center;">└─ ※閉校・管理外・仮教室はID突合で自動除外・クレンジング</div>
+                        <div style="color: var(--primary); font-weight: bold; font-size: 1.1rem;">↓</div>
+                        <div style="background: var(--surface); border: 1px solid var(--border); padding: 8px 16px; border-radius: 20px; font-weight: bold; color: var(--primary);">④ 分析と絞り込み</div>
+                        <div style="color: var(--text-muted); text-align: center;">├─ 最左上の「受講種別」チェックボックスを最優先で設定</div>
+                        <div style="color: var(--text-muted); text-align: center;">└─ 管轄 ➔ エリア ➔ 教室名(教場No順) の3段連動フィルターで分析</div>
+                        <div style="color: var(--primary); font-weight: bold; font-size: 1.1rem;">↓</div>
+                        <div style="background: var(--surface); border: 1px solid var(--border); padding: 8px 16px; border-radius: 20px; font-weight: bold; color: var(--primary);">⑤ レポート保存・出力</div>
+                        <div style="color: var(--text-muted); text-align: center;">├─ 教室別・学年別の各マトリクスからワンクリックで美麗Excel出力</div>
+                        <div style="color: var(--text-muted); text-align: center;">└─ 右上「PDFへ保存」からA4横サイズで綺麗に1ページ保存</div>
+                    </div>
+                </div>
+
+                <h3 style="margin-top: 25px; font-size: 1.1rem; color: var(--primary); border-bottom: 1px solid var(--border); padding-bottom: 6px;">💡 1. このツールでできること</h3>
+                <p style="margin-bottom: 15px;">システムから出力された受講生実績Excelを読み込ませるだけで、成約率や移行率の集計・複数年の月別グラフ化を自動で行います。</p>
+                <ul style="margin-left: 20px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 6px;">
+                    <li><strong>データクレンジング</strong>: 閉校教室、およびテスト用等の仮教室データをIDで自動照合して除外。表記揺れもマスタ上の正式名に上書き統一します。</li>
+                    <li><strong>ボトルネックの可視化</strong>: 問合せ➔体験➔入会の各移行率について、全体平均より高ければ<span style="color: #065f46; font-weight: bold;">緑色</span>、低ければ<span style="color: #b91c1c; font-weight: bold;">赤色</span>で表を自動で色分けし、課題を一目で特定します。</li>
                 </ul>
 
-                <h3 style="margin-top: 20px; color: var(--primary);">📋 2. 読み込みデータの準備</h3>
-                <p>ヘッダー行（1行目）に、「区分 / ステータス」「教室名」「学年」「来校目的」「受講種別」「問合せ日」「体験日時」「入会日」の列が含まれているExcelファイルを準備してください。</p>
+                <h3 style="margin-top: 25px; font-size: 1.1rem; color: var(--primary); border-bottom: 1px solid var(--border); padding-bottom: 6px;">📋 2. 読み込みデータの形式</h3>
+                <div style="background: var(--background); border: 1px solid var(--border); padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                    <strong style="display: block; margin-bottom: 8px;">📄 教室リストCSV (マスタファイル)</strong>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.5;">ツールと同じフォルダ直下に配置しておくことで、ビルド時に自動で読み込まれます。ファイル名の日付部分（例: 20260710）をシステム日付として取得します。</p>
+                    
+                    <strong style="display: block; margin-bottom: 8px;">📊 実績データExcel (集計対象)</strong>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0; line-height: 1.5;">1行目のヘッダー行に「管轄ID」「教場ID」「区分（対応結果）」「校舎名」「学年」「来校目的」「受講種別」「問合せ日」「体験日時」「入会日」の各列が含まれているファイルをご使用ください。</p>
+                </div>
 
-                <h3 style="margin-top: 20px; color: var(--primary);">🚀 3. 準備と起動方法</h3>
-                <ol style="margin-left: 20px; margin-bottom: 15px;">
-                    <li><strong>ツールの起動</strong>: <code>入会対応分析ツール_軽量版.html</code> をダブルクリックして開きます。</li>
-                    <li><strong>データの読み込み</strong>: 中央の枠にExcelファイルをドラッグ＆ドロップするか、「ファイルを選択」ボタンから読み込ませます。</li>
-                    <li><strong>分析完了</strong>: 一瞬でダッシュボードが描画されます。</li>
-                </ol>
+                <h3 style="margin-top: 25px; font-size: 1.1rem; color: var(--primary); border-bottom: 1px solid var(--border); padding-bottom: 6px;">🔍 3. 画面の操作とフィルター</h3>
+                <ul style="margin-left: 20px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 8px;">
+                    <li><strong>受講種別の切り替え (最左上)</strong>:
+                        最も設定漏れの起きやすいフィルターです。忘れずに設定できるよう、フィルターエリアの左上（1番目）に配置されています。</li>
+                    <li><strong>3段連動フィルター</strong>:
+                        「管轄」を変更すると「エリア区分」の選択肢が絞り込まれ、エリア区分を変更すると「教室」の選択肢が教場No.順（数値順）で絞り込まれます。</li>
+                    <li><strong>日付範囲フィルター</strong>:
+                        問い合わせ日、体験日、入会日を基準として指定の期間で絞り込めます。</li>
+                </ul>
 
-                <h3 style="margin-top: 20px; color: var(--primary);">📊 4. 画面の見方と操作方法</h3>
-                <p><strong>① フィルター機能</strong><br>
-                教室や目的、学年に加え、<strong>受講種別（複数選択可）</strong>、さらに「問い合わせ日 / 体験日 / 入会日」を基準とした<strong>日付範囲</strong>での絞り込みが可能です。</p>
-                <p><strong>② 経年推移グラフ（複数年対応）</strong><br>
-                データに含まれる全年度（3〜5年分など）を抽出し、月別の推移を重ねた折れ線で表示します。グラフ左上の <strong><code>[問合せ数]</code> <code>[入会者数]</code> タブ</strong> で表示を切り替えることができます。</p>
-
-                <h3 style="margin-top: 20px; color: var(--primary);">📑 5. 表の活用とExcel・PDF出力</h3>
-                <ul style="margin-left: 20px; margin-bottom: 15px;">
-                    <li><strong>Excel・比較表ボタン</strong>: 各グラフの上に常時表示されています。誤クリック防止のため、<strong>左側にExcel出力、右側に比較表表示</strong>で統一されています。</li>
-                    <li><strong>生徒データ詳細</strong>: 下部にフィルター結果と連動した生徒一覧が表示され、検索やExcel出力が可能です。</li>
-                    <li><strong>PDF保存（印刷）</strong>: 右上のボタンから起動します。用紙設定をA4横向きにすると、全体の配置が自動でズーム縮小（90%）され、重なりなく**綺麗に1ページに収まります**。</li>
+                <h3 style="margin-top: 25px; font-size: 1.1rem; color: var(--primary); border-bottom: 1px solid var(--border); padding-bottom: 6px;">📥 4. 各種レポート出力</h3>
+                <ul style="margin-left: 20px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 8px;">
+                    <li><strong>Excelエクスポート (条件付き書式再現)</strong>:
+                        「全教室KPIマトリクス」「学年別KPIマトリクス」「生徒データ詳細」の各表の右上にExcel出力ボタンがあります。出力されたExcelファイルも、ツール画面同様にヘッダー装飾や平均値との高低によるセル塗り分け（緑・赤）が美しく再現されます。</li>
+                    <li><strong>全教室分の学年別データ一括出力</strong>:
+                        「学年別のKPI比較マトリクス」の「全教室分を一括出力」ボタンを押すと、すべての教室の学年別KPIデータを1枚のシートに教場No.順で連結した大規模分析用Excelを生成します。</li>
+                    <li><strong>PDF保存 (A4横サイズで綺麗に収めるコツ)</strong>:
+                        右上の「PDFへ保存」ボタンを押した後、プリンタの送信先を「PDFに保存」に設定し、<strong>用紙サイズを「A4」、方向を「横」</strong>に指定してください。自動でレイアウトが0.9倍に縮小され、要素の重なりや途切れなく美しく1ページに印刷保存されます。</li>
                 </ul>
             </div>
         </div>
@@ -4251,6 +4282,9 @@ function renderStoreTable(data) {
         if (!storeSummary[key]) {
             storeSummary[key] = {
                 name: item.store,
+                storeCode: item.storeCode || '',
+                division: item.division || '未分類',
+                area: item.area || '未分類',
                 courseType: course,
                 total: 0,
                 trialDone: 0,
@@ -4799,7 +4833,9 @@ function exportStoreTableToExcel() {
 
                 return {
                     'No': idx + 1,
-                    '教室名': s.name,
+                    '管轄': s.division,
+                    'エリア': s.area,
+                    '教室名': s.storeCode ? `${s.storeCode} ${s.name}` : s.name,
                     '受講種別': s.courseType,
                     '総合ランク': s.rank,
                     '総問合せ数': s.total,
