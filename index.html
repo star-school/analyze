@@ -1462,150 +1462,184 @@ header {
         /* Print styling */
         @media print {
             @page {
-                size: A4 landscape; /* 横向き（Landscape）で1ページに収めるよう推奨 */
-                margin: 6mm 6mm 6mm 6mm;
+                size: A4 landscape;
+                margin: 5mm 10mm;
             }
-            body {
+            body, html {
                 background: white !important;
                 color: black !important;
-                font-size: 0.8rem !important;
-                zoom: 90%; /* 全体を縮小して1ページに確実に収める */
+                font-size: 0.7rem !important; /* より小さく */
+                width: 100% !important;
+                height: auto !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                zoom: 95% !important;
             }
-            /* Hide UI components we don't want in a static PDF report */
-            .header-bar div button,
-            .header-bar div a,
-            .header-bar button,
-            #open-manual-btn,
-            #export-pdf-btn,
-            #change-file-btn,
-            .btn-toggle-filter,
-            .table-card, /* Hide all table cards (Store comparison, AI Chat, Detailed list) */
-            #welcome-screen,
-            #manual-modal {
+            
+            /* 【超重要】Flex/Gridによる印刷時の要素順序逆転・ページまたぎバグを完全に防ぐため、全主要コンテナをBlockに強制リセット */
+            #dashboard-screen, .dashboard-container, 
+            .sticky-header-container, .header-bar, .filter-section, 
+            .kpi-grid, .charts-grid, .print-page-2-container, 
+            .chart-card, #insight-panel {
+                display: block !important;
+                float: none !important;
+                position: static !important;
+                page-break-inside: auto !important;
+                break-inside: auto !important;
+                transform: none !important;
+                box-sizing: border-box !important;
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+
+            /* 不要な要素の非表示 */
+            .header-bar div button, .header-bar div a, .header-bar button,
+            #open-manual-btn, #export-pdf-btn, #change-file-btn, .btn-toggle-filter,
+            .table-card, #welcome-screen, #manual-modal, [id$="-table-container"],
+            [id^="toggle-"], [id^="export-"], .toggle-group, .btn-hearing-guide {
                 display: none !important;
             }
-            .dashboard-container {
-                padding: 0 !important;
-                max-width: 100% !important;
-                width: 100% !important;
-            }
-            .sticky-header-container {
-                position: relative !important;
-                background: transparent !important;
-                padding-top: 0 !important;
-                padding-bottom: 0 !important;
-                margin-bottom: 10px !important;
-                border-bottom: none !important;
-                box-shadow: none !important;
-            }
-            .filter-section {
-                display: grid !important; /* 画面上で非表示でも印刷時は強制表示 */
-            }
-            .header-bar {
-                margin-bottom: 10px !important;
-                padding-bottom: 5px !important;
-            }
-            .header-bar h1 {
-                font-size: 1.2rem !important;
-            }
-            .header-bar p {
-                font-size: 0.75rem !important;
-            }
+
+            /* ヘッダー・抽出条件の極小化 */
+            .sticky-header-container { margin-bottom: 5px !important; }
+            .header-bar { padding: 0 5px !important; margin-bottom: 5px !important; border: none !important; }
+            .header-title h1 { font-size: 1rem !important; color: black !important; margin: 0 !important; }
+            .header-title p { font-size: 0.6rem !important; margin: 2px 0 0 0 !important; }
+            
+            /* 抽出条件（インラインブロックで擬似的に並べる） */
             .filter-section {
                 border: 1px solid #ccc !important;
                 background: #f9f9f9 !important;
-                padding: 8px !important;
-                margin-bottom: 10px !important;
-                display: flex !important;
-                flex-wrap: wrap !important;
-                gap: 10px !important;
+                padding: 4px !important;
+                margin-bottom: 5px !important;
+                text-align: left !important;
+                max-height: 50px !important; /* 高さを強制制限 */
+                overflow: hidden !important;
             }
             .filter-group {
-                margin: 0 !important;
-            }
-            .filter-group label {
-                font-size: 0.7rem !important;
-            }
-            .filter-group select,
-            .filter-group input {
-                border: none !important;
-                background: transparent !important;
-                font-weight: bold !important;
-                appearance: none !important;
-                -webkit-appearance: none !important;
-                padding: 0 !important;
-                color: black !important;
-                font-size: 0.75rem !important;
-            }
-            /* Styling for courseType multiple checkboxes list in print */
-            #filter-courseType-container {
-                border: none !important;
-                background: transparent !important;
-                max-height: none !important;
-                overflow: visible !important;
-                padding: 0 !important;
-            }
-            #filter-courseType-container label {
-                display: inline-block !important;
+                display: inline-block !important; /* 横に並べる */
                 margin-right: 10px !important;
-                font-size: 0.75rem !important;
+                vertical-align: top !important;
             }
-            #filter-courseType-container label:has(input[type="checkbox"]:not(:checked)) {
-                display: none !important;
+            .filter-group label { font-size: 0.6rem !important; margin-right: 2px !important; }
+            .filter-group select, .filter-group input {
+                border: none !important; background: transparent !important;
+                font-weight: bold !important; font-size: 0.65rem !important;
+                padding: 0 !important; appearance: none !important; -webkit-appearance: none !important;
             }
+            #filter-courseType-container { display: inline-block !important; border: none !important; padding: 0 !important; }
+            #filter-courseType-container label { display: inline-block !important; margin-right: 5px !important; font-size: 0.6rem !important; }
+            #filter-courseType-container label:has(input[type="checkbox"]:not(:checked)) { display: none !important; }
+
+            /* KPIカード（擬似的に横並び） */
             .kpi-grid {
-                grid-template-columns: repeat(7, 1fr) !important; /* 全てのKPIを1列に並べる */
-                gap: 5px !important;
+                text-align: justify !important;
                 margin-bottom: 10px !important;
+                padding: 0 !important;
             }
             .kpi-card {
+                display: inline-block !important;
+                width: 13.5% !important; /* 7列をパーセントで分割 */
                 border: 1px solid #ddd !important;
-                box-shadow: none !important;
-                background: white !important;
-                padding: 8px !important;
+                padding: 4px !important;
+                margin-right: 0.5% !important;
+                vertical-align: top !important;
+                text-align: center !important;
             }
-            .kpi-card::before {
-                display: none !important;
-            }
-            .kpi-label {
-                font-size: 0.65rem !important;
-                margin-bottom: 3px !important;
-            }
-            .kpi-value {
-                font-size: 1.2rem !important;
-            }
-            .kpi-sub {
-                display: none !important; /* スペース節約のため非表示 */
-            }
+            .kpi-card::before, .kpi-sub { display: none !important; }
+            .kpi-label { font-size: 0.55rem !important; margin-bottom: 2px !important; white-space: nowrap !important; overflow: hidden !important; }
+            .kpi-value { font-size: 1rem !important; font-weight: bold !important; }
+
+            /* グラフエリア（擬似的に横並び） */
             .charts-grid {
-                grid-template-columns: 1fr 1fr !important; /* 2列のグリッド（2x2） */
-                gap: 8px !important;
+                margin-bottom: 0 !important;
+                padding: 0 !important;
             }
-            .chart-card {
+            .charts-grid .chart-card {
+                display: inline-block !important;
+                width: 49% !important; /* 横並び2列 */
+                margin-right: 1% !important;
+                vertical-align: top !important;
                 border: 1px solid #ddd !important;
-                box-shadow: none !important;
-                background: white !important;
-                padding: 8px !important;
+                padding: 5px !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
             }
             .chart-card h2 {
-                font-size: 0.8rem !important;
-                margin-bottom: 5px !important;
-                padding-left: 5px !important;
+                font-size: 0.7rem !important; margin-bottom: 4px !important;
+                padding-left: 4px !important; border-left: 3px solid var(--primary) !important;
             }
             .chart-container {
-                height: 160px !important; /* 高さを非常にコンパクトに固定 */
+                height: 160px !important; /* 高さを安全な160pxまで縮小 */
                 position: relative !important;
             }
-            .chart-container canvas {
-                height: 100% !important;
-                max-height: 100% !important;
-                width: 100% !important;
+            .chart-container canvas { height: 100% !important; width: 100% !important; }
+
+            /* 2ページ目 (YoYグラフ) */
+            .print-page-2-container {
+                page-break-before: always !important;
+                break-before: page !important;
             }
-            [id$="-table-container"],
-            [id^="toggle-"],
-            [id^="export-"],
-            .toggle-group,
-            .btn-hearing-guide {
+            .print-page-2-container .chart-card { margin-bottom: 5px !important; }
+            
+            /* 3ページ目 (目的別獲得推移) */
+            .print-page-3-container {
+                page-break-before: always !important;
+                break-before: page !important;
+                margin-top: 10px !important;
+            }
+            .print-page-3-container .chart-card {
+                width: 100% !important;
+                display: block !important;
+                margin-right: 0 !important;
+            }
+            .print-page-3-container .chart-container {
+                height: 380px !important; /* 大きく表示 */
+            }
+
+            /* 4ページ目 (媒体別獲得推移) */
+            .print-page-4-container {
+                page-break-before: always !important;
+                break-before: page !important;
+                margin-top: 10px !important;
+            }
+            .print-page-4-container .chart-card {
+                width: 100% !important;
+                display: block !important;
+                margin-right: 0 !important;
+            }
+            .print-page-4-container .chart-container {
+                height: 380px !important; /* 大きく表示 */
+            }
+            
+            /* 5ページ目 (来校目的別受講期間) */
+            .print-page-5-container {
+                page-break-before: always !important;
+                break-before: page !important;
+                margin-top: 10px !important;
+            }
+            .print-page-5-container .chart-card {
+                width: 100% !important;
+                display: block !important;
+                margin-right: 0 !important;
+            }
+            .print-page-5-container .chart-container {
+                height: 380px !important; /* 大きく表示 */
+            }
+            
+            /* 3ページ目のインサイトパネル */
+            #insight-panel {
+                page-break-before: always !important;
+                break-before: page !important;
+                border: 1px solid #ddd !important;
+                background: white !important;
+                padding: 15px !important;
+                margin-top: 5px !important;
+                min-height: 300px !important; /* 空になっても高さを維持 */
+            }
+            
+            /* (使用しないが念のため残す) */
+            .page-break {
                 display: none !important;
             }
         }
@@ -1691,7 +1725,7 @@ header {
                 <h3>Excelファイルをドラッグ＆ドロップ</h3>
                 <p>またはファイルを選択してください</p>
                 <p style="font-size:0.8rem; color:var(--text-secondary); margin-top:4px; margin-bottom:10px;">※メッセージ設定用Excelも同時にドラッグ＆ドロップできます</p>
-                <input type="file" id="file-input" accept=".xlsx" multiple style="display: none;">
+                <input type="file" id="file-input" accept=".xlsx, .xls, .csv" style="display: none;">
                 <label for="file-input" class="select-btn">ファイルを選択する</label>
             </div>
 
@@ -1844,11 +1878,6 @@ header {
                 </div>
             </div>
 
-            <!-- ファネル分析インサイトパネル -->
-            <div id="insight-panel" style="display: none; margin-bottom: 20px; padding: 20px; border-radius: var(--radius-md); background: #f0f9ff; border: 1px solid #bae6fd; box-shadow: var(--shadow-sm);">
-                <!-- JavaScriptが動的にインサイトを注入します -->
-            </div>
-
             <!-- チャートエリア -->
             <div class="charts-grid">
                 <div class="chart-card">
@@ -1884,7 +1913,7 @@ header {
                     </div>
                 </div>
 
-                <div class="chart-card">
+                <div class="chart-card print-page-1-end">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                         <h2 style="margin: 0; border-left: 4px solid var(--primary); padding-left: 10px;">来校目的 (問い合わせ区分) 別 分析 (入会率 ＆ 割合)</h2>
                         <div style="display: flex; gap: 8px;">
@@ -1916,8 +1945,12 @@ header {
                         <canvas id="chart-purpose"></canvas>
                     </div>
                 </div>
-
-                <div class="chart-card">
+            </div>
+            
+            <!-- 2ページ目の印刷用コンテナ -->
+            <div class="print-page-2-container">
+                <div class="charts-grid">
+                    <div class="chart-card">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                         <div style="display: flex; align-items: center; gap: 15px;">
                             <h2 style="margin: 0; border-left: 4px solid var(--primary); padding-left: 10px;" id="yoy-inq-title">問合せ・入会数 経年推移</h2>
@@ -1925,6 +1958,7 @@ header {
                             <div class="toggle-group">
                                 <button id="btn-yoy-mode-inq" class="toggle-tab active">問合せ数</button>
                                 <button id="btn-yoy-mode-enroll" class="toggle-tab">入会者数</button>
+                                <button id="btn-yoy-mode-immediate" class="toggle-tab">即入会数</button>
                             </div>
                         </div>
                         <div style="display: flex; gap: 8px;">
@@ -1972,6 +2006,84 @@ header {
                 </div>
             </div>
 
+            <!-- 3ページ目の印刷用コンテナ (目的別) -->
+            <div class="print-page-3-container">
+                <div class="charts-grid" style="grid-template-columns: 1fr; margin-bottom: 20px;">
+                    <!-- 来校目的別 獲得推移グラフ -->
+                    <div class="chart-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 5px;">
+                            <h2 style="margin: 0; border-left: 4px solid var(--primary); padding-left: 10px;">来校目的別 獲得推移</h2>
+                            <div style="display: flex; gap: 5px; align-items: center;">
+                                <div id="purpose-year-container" class="tab-container" style="display: flex; background: var(--background); padding: 3px; border-radius: 6px; border: 1px solid var(--border);"></div>
+                                <div class="tab-container" style="display: flex; background: var(--background); padding: 3px; border-radius: 6px; border: 1px solid var(--border);">
+                                    <button id="btn-metric-purpose-inquiry" class="tab-button active" style="padding: 4px 8px; font-size: 0.75rem; border: none; background: transparent; cursor: pointer; border-radius: 4px; font-weight: bold; color: var(--text-primary);">問合せ</button>
+                                    <button id="btn-metric-purpose-enroll" class="tab-button" style="padding: 4px 8px; font-size: 0.75rem; border: none; background: transparent; cursor: pointer; border-radius: 4px; font-weight: bold; color: var(--text-muted);">入会</button>
+                                    <button id="btn-metric-purpose-rate" class="tab-button" style="padding: 4px 8px; font-size: 0.75rem; border: none; background: transparent; cursor: pointer; border-radius: 4px; font-weight: bold; color: var(--text-muted);">率</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chart-container" id="chart-purpose-trend-container">
+                            <canvas id="chart-purpose-trend"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 4ページ目の印刷用コンテナ (媒体別) -->
+            <div class="print-page-4-container">
+                <div class="charts-grid" style="grid-template-columns: 1fr; margin-bottom: 20px;">
+                    <!-- 媒体別 獲得推移グラフ -->
+                    <div class="chart-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 5px;">
+                            <h2 style="margin: 0; border-left: 4px solid var(--primary); padding-left: 10px;">媒体別 獲得推移</h2>
+                            <div style="display: flex; gap: 5px; align-items: center;">
+                                <div id="media-year-container" class="tab-container" style="display: flex; background: var(--background); padding: 3px; border-radius: 6px; border: 1px solid var(--border);"></div>
+                                <div class="tab-container" style="display: flex; background: var(--background); padding: 3px; border-radius: 6px; border: 1px solid var(--border);">
+                                    <button id="btn-metric-media-inquiry" class="tab-button active" style="padding: 4px 8px; font-size: 0.75rem; border: none; background: transparent; cursor: pointer; border-radius: 4px; font-weight: bold; color: var(--text-primary);">問合せ</button>
+                                    <button id="btn-metric-media-enroll" class="tab-button" style="padding: 4px 8px; font-size: 0.75rem; border: none; background: transparent; cursor: pointer; border-radius: 4px; font-weight: bold; color: var(--text-muted);">入会</button>
+                                    <button id="btn-metric-media-rate" class="tab-button" style="padding: 4px 8px; font-size: 0.75rem; border: none; background: transparent; cursor: pointer; border-radius: 4px; font-weight: bold; color: var(--text-muted);">率</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chart-container" id="chart-media-trend-container">
+                            <canvas id="chart-media-trend"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </div>
+            
+            <!-- 5ページ目の印刷用コンテナ (来校目的別受講期間) -->
+            <div class="print-page-5-container">
+                <div class="charts-grid" style="grid-template-columns: 1fr; margin-bottom: 20px;">
+                    <div class="chart-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 5px;">
+                            <h2 style="margin: 0; border-left: 4px solid var(--primary); padding-left: 10px;">来校目的別 受講期間</h2>
+                            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                                <!-- 指標切り替え -->
+                                <div class="tab-container" style="display: flex; background: var(--background); padding: 3px; border-radius: 6px; border: 1px solid var(--border);">
+                                    <button id="btn-duration-metric-mean" class="tab-button active" style="padding: 4px 8px; font-size: 0.75rem; border: none; background: transparent; cursor: pointer; border-radius: 4px; font-weight: bold; color: var(--text-primary);">平均値</button>
+                                    <button id="btn-duration-metric-median" class="tab-button" style="padding: 4px 8px; font-size: 0.75rem; border: none; background: transparent; cursor: pointer; border-radius: 4px; font-weight: bold; color: var(--text-muted);">中央値</button>
+                                </div>
+                                <!-- ステータス絞り込み -->
+                                <div class="tab-container" style="display: flex; background: var(--background); padding: 3px; border-radius: 6px; border: 1px solid var(--border);">
+                                    <button id="btn-duration-status-all" class="tab-button active" style="padding: 4px 8px; font-size: 0.75rem; border: none; background: transparent; cursor: pointer; border-radius: 4px; font-weight: bold; color: var(--text-primary);">すべて</button>
+                                    <button id="btn-duration-status-active" class="tab-button" style="padding: 4px 8px; font-size: 0.75rem; border: none; background: transparent; cursor: pointer; border-radius: 4px; font-weight: bold; color: var(--text-muted);">受講生</button>
+                                    <button id="btn-duration-status-withdrawn" class="tab-button" style="padding: 4px 8px; font-size: 0.75rem; border: none; background: transparent; cursor: pointer; border-radius: 4px; font-weight: bold; color: var(--text-muted);">退会生</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chart-container" id="chart-purpose-duration-container">
+                            <canvas id="chart-purpose-duration"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- ファネル分析インサイトパネル (印刷時は3ページ目に配置) -->
+            <div id="insight-panel" style="display: none; margin-bottom: 20px; padding: 20px; border-radius: var(--radius-md); background: #f0f9ff; border: 1px solid #bae6fd; box-shadow: var(--shadow-sm); page-break-inside: avoid; break-inside: avoid;">
+                <!-- JavaScriptが動的にインサイトを注入します -->
+            </div>
 
             <!-- 教室別比較テーブル -->
             <div class="table-card">
@@ -2031,6 +2143,7 @@ header {
                                 <th data-sort-grade="immediateEnrollRate" style="cursor: pointer; user-select: none;">即入会率 <span class="sort-icon"></span></th>
                                 <th data-sort-grade="ng" style="cursor: pointer; user-select: none;">NG数 (全体比) <span class="sort-icon"></span></th>
                                 <th data-sort-grade="withdraw" style="cursor: pointer; user-select: none;">退会者数 <span class="sort-icon"></span></th>
+                                <th data-sort-grade="avgDuration" style="cursor: pointer; user-select: none;">平均在籍期間（月） <span class="sort-icon"></span></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -2081,7 +2194,10 @@ header {
                                 <th data-sort-detail="inquiryDate" style="cursor: pointer; user-select: none;">問合せ日 <span class="sort-icon"></span></th>
                                 <th data-sort-detail="trialDate" style="cursor: pointer; user-select: none;">体験日時 <span class="sort-icon"></span></th>
                                 <th data-sort-detail="enrollDate" style="cursor: pointer; user-select: none;">入会日 <span class="sort-icon"></span></th>
+                                <th data-sort-detail="withdrawDate" style="cursor: pointer; user-select: none;">退会日 <span class="sort-icon"></span></th>
                                 <th data-sort-detail="studyTime" style="cursor: pointer; user-select: none;">受講時間 <span class="sort-icon"></span></th>
+                                <th data-sort-detail="durationMonths" style="cursor: pointer; user-select: none;">在籍期間（月） <span class="sort-icon"></span></th>
+                                <th data-sort-detail="avgStudyTimePerMonth" style="cursor: pointer; user-select: none;">月受講平均時間 <span class="sort-icon"></span></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -2108,7 +2224,7 @@ header {
                 <div style="background: var(--background); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-bottom: 25px; font-family: monospace, 'Courier New'; line-height: 1.4; overflow-x: auto; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">
                     <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 0.85rem;">
                         <div style="background: var(--surface); border: 1px solid var(--border); padding: 8px 16px; border-radius: 20px; font-weight: bold; color: var(--primary);">① データの準備</div>
-                        <div style="color: var(--text-muted); text-align: center;">└─ 教室リストCSV (フォルダ直下) &amp; 実績Excel を用意</div>
+                        <div style="color: var(--text-muted); text-align: center;">└─ 「分析したいデータの受講生一覧.xls」を用意</div>
                         <div style="color: var(--primary); font-weight: bold; font-size: 1.1rem;">↓</div>
                         <div style="background: var(--surface); border: 1px solid var(--border); padding: 8px 16px; border-radius: 20px; font-weight: bold; color: var(--primary);">② ツールの起動</div>
                         <div style="color: var(--text-muted); text-align: center;">└─ 「入会対応分析ツール_軽量版.html」をダブルクリック</div>
@@ -2168,7 +2284,7 @@ header {
 
     <!-- バージョン情報フッター -->
     <div id="version-footer" style="text-align: center; padding: 15px; font-size: 0.8rem; color: var(--text-secondary); border-top: 1px solid var(--border); margin-top: 30px; background: var(--bg-card);">
-        入会対応分析ツール <span id="version-text">v1.2.0</span> (制作日時: <span id="build-time-text">20260729_153156</span>)
+        入会対応分析ツール <span id="version-text">v1.2.0</span> (制作日時: <span id="build-time-text">20260806_131209</span>)
     </div>
 
     <!-- 処理中ローディングオーバーレイ -->
@@ -2193,8 +2309,13 @@ let storeTableSort = { key: 'total', direction: 'desc' }; // 教室別テーブ�
 let gradeTableSort = { key: 'total', direction: 'desc' }; // 学年別テーブルのソート状態
 let detailTableSort = { key: 'id', direction: 'asc' }; // 生徒データ詳細テーブルのソート状態
 let yoyMode = 'inq'; // 前年同期比グラフの表示モード ('inq': 問合せ数, 'enroll': 入会数)
+let purposeMediaMetric = 'inquiry'; // 目的・媒体別グラフの指標モード ('inquiry': 問合せ数, 'enroll': 入会数, 'trialRate': 参加率)
+let purposeMediaAxis = 'purpose'; // 目的・媒体別グラフの分析軸モード ('purpose': 来校目的, 'media': 媒体)
+let purposeMediaYear = null; // 目的・媒体別グラフの表示対象年 (nullの時は動的に最新年を割り当て)
 let currentStoreSummaryList = []; // Excel出力用にマトリクス集計結果を保持するグローバル変数
 let currentGradeSummaryList = []; // Excel出力用に学年別集計結果を保持するグローバル変数
+let purposeDurationMetric = 'mean'; // 来校目的別受講期間グラフの指標 ('mean': 平均値, 'median': 中央値)
+let purposeDurationStatus = 'all'; // 来校目的別受講期間グラフのステータス絞り込み ('all': すべて, 'active': 受講生, 'withdrawn': 退会生)
 
 // 列の同義語辞書（表記揺れ対応用）
 const COLUMN_SYNONYMS = {
@@ -2213,7 +2334,9 @@ const COLUMN_SYNONYMS = {
     courseType: ['受講種別', '受講区分'],
     generation: ['年代', '年齢区分', '年齢層', '世代'],
     divisionId: ['管轄ID', '管轄コード'],
-    storeId: ['教場ID', '教場コード']
+    storeId: ['教場ID', '教場コード'],
+    media: ['媒体', '流入経路', '広告媒体', '問合せ媒体', '流入元', 'ソース', '媒体名'],
+    withdrawDate: ['退会日', '退会年月日', '退会日付']
 };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -2229,10 +2352,11 @@ document.addEventListener('DOMContentLoaded', () => {
         baseDateInput.value = new Date().toISOString().split('T')[0];
         baseDateInput.addEventListener('change', () => {
             if (processedData.length > 0) {
-                // 学年を再計算
+                // 学年および在籍期間・平均受講時間を再計算
                 processedData.forEach(item => {
                     const dateForGrade = item.trialDateStr || item.inquiryDateStr;
                     item.trialGrade = calculateTrialGrade(item.currentGrade, dateForGrade, item.courseType, item.generation);
+                    updateStudentDurationAndAvg(item, baseDateInput.value);
                 });
                 // フィルターと表示の更新（プルダウンの選択状態は維持）
                 applyFiltersAndRender();
@@ -2253,6 +2377,103 @@ document.addEventListener('DOMContentLoaded', () => {
     const exportDetailBtn = document.getElementById('export-detail-excel-btn');
     if (exportDetailBtn) {
         exportDetailBtn.addEventListener('click', exportDetailTableToExcel);
+    }
+
+    // 目的別獲得推移グラフの指標切り替えイベント
+    const btnMetricPurposeInquiry = document.getElementById('btn-metric-purpose-inquiry');
+    const btnMetricPurposeEnroll = document.getElementById('btn-metric-purpose-enroll');
+    const btnMetricPurposeRate = document.getElementById('btn-metric-purpose-rate');
+
+    const updateTabStyles = (activeBtn, inactiveButtons) => {
+        if (!activeBtn) return;
+        activeBtn.classList.add('active');
+        activeBtn.style.color = 'var(--text-primary)';
+        inactiveButtons.forEach(btn => {
+            if (btn) {
+                btn.classList.remove('active');
+                btn.style.color = 'var(--text-muted)';
+            }
+        });
+    };
+
+    if (btnMetricPurposeInquiry && btnMetricPurposeEnroll && btnMetricPurposeRate) {
+        btnMetricPurposeInquiry.addEventListener('click', () => {
+            purposeTrendMetric = 'inquiry';
+            updateTabStyles(btnMetricPurposeInquiry, [btnMetricPurposeEnroll, btnMetricPurposeRate]);
+            renderTrendChart(filteredData, 'purpose');
+        });
+        btnMetricPurposeEnroll.addEventListener('click', () => {
+            purposeTrendMetric = 'enroll';
+            updateTabStyles(btnMetricPurposeEnroll, [btnMetricPurposeInquiry, btnMetricPurposeRate]);
+            renderTrendChart(filteredData, 'purpose');
+        });
+        btnMetricPurposeRate.addEventListener('click', () => {
+            purposeTrendMetric = 'trialRate';
+            updateTabStyles(btnMetricPurposeRate, [btnMetricPurposeInquiry, btnMetricPurposeEnroll]);
+            renderTrendChart(filteredData, 'purpose');
+        });
+    }
+
+    // 媒体別獲得推移グラフの指標切り替えイベント
+    const btnMetricMediaInquiry = document.getElementById('btn-metric-media-inquiry');
+    const btnMetricMediaEnroll = document.getElementById('btn-metric-media-enroll');
+    const btnMetricMediaRate = document.getElementById('btn-metric-media-rate');
+
+    if (btnMetricMediaInquiry && btnMetricMediaEnroll && btnMetricMediaRate) {
+        btnMetricMediaInquiry.addEventListener('click', () => {
+            mediaTrendMetric = 'inquiry';
+            updateTabStyles(btnMetricMediaInquiry, [btnMetricMediaEnroll, btnMetricMediaRate]);
+            renderTrendChart(filteredData, 'media');
+        });
+        btnMetricMediaEnroll.addEventListener('click', () => {
+            mediaTrendMetric = 'enroll';
+            updateTabStyles(btnMetricMediaEnroll, [btnMetricMediaInquiry, btnMetricMediaRate]);
+            renderTrendChart(filteredData, 'media');
+        });
+        btnMetricMediaRate.addEventListener('click', () => {
+            mediaTrendMetric = 'trialRate';
+            updateTabStyles(btnMetricMediaRate, [btnMetricMediaInquiry, btnMetricMediaEnroll]);
+            renderTrendChart(filteredData, 'media');
+        });
+    }
+    
+    // 来校目的別受講期間グラフの切り替えイベント
+    const btnDurationMetricMean = document.getElementById('btn-duration-metric-mean');
+    const btnDurationMetricMedian = document.getElementById('btn-duration-metric-median');
+    
+    if (btnDurationMetricMean && btnDurationMetricMedian) {
+        btnDurationMetricMean.addEventListener('click', () => {
+            purposeDurationMetric = 'mean';
+            updateTabStyles(btnDurationMetricMean, [btnDurationMetricMedian]);
+            renderPurposeDurationChart(filteredData);
+        });
+        btnDurationMetricMedian.addEventListener('click', () => {
+            purposeDurationMetric = 'median';
+            updateTabStyles(btnDurationMetricMedian, [btnDurationMetricMean]);
+            renderPurposeDurationChart(filteredData);
+        });
+    }
+
+    const btnDurationStatusAll = document.getElementById('btn-duration-status-all');
+    const btnDurationStatusActive = document.getElementById('btn-duration-status-active');
+    const btnDurationStatusWithdrawn = document.getElementById('btn-duration-status-withdrawn');
+
+    if (btnDurationStatusAll && btnDurationStatusActive && btnDurationStatusWithdrawn) {
+        btnDurationStatusAll.addEventListener('click', () => {
+            purposeDurationStatus = 'all';
+            updateTabStyles(btnDurationStatusAll, [btnDurationStatusActive, btnDurationStatusWithdrawn]);
+            renderPurposeDurationChart(filteredData);
+        });
+        btnDurationStatusActive.addEventListener('click', () => {
+            purposeDurationStatus = 'active';
+            updateTabStyles(btnDurationStatusActive, [btnDurationStatusAll, btnDurationStatusWithdrawn]);
+            renderPurposeDurationChart(filteredData);
+        });
+        btnDurationStatusWithdrawn.addEventListener('click', () => {
+            purposeDurationStatus = 'withdrawn';
+            updateTabStyles(btnDurationStatusWithdrawn, [btnDurationStatusAll, btnDurationStatusActive]);
+            renderPurposeDurationChart(filteredData);
+        });
     }
     
     // フィルターセクションの表示/非表示切り替え
@@ -2778,9 +2999,10 @@ function handleFile(file) {
                     }
 
                     item.status = item.status ? item.status.toString().trim() : '(空白)';
-                    item.purpose = item.purpose ? item.purpose.toString().trim() : '(空白)';
+                    item.purpose = cleanPurpose(item.purpose);
                     item.courseType = item.courseType ? item.courseType.toString().trim() : '(空白)';
                     item.generation = item.generation ? item.generation.toString().trim() : '';
+                    item.media = cleanMedia(item.media);
                     
                     // 名前データの結合
                     let nameStr = '';
@@ -2795,6 +3017,7 @@ function handleFile(file) {
                     item.inquiryDateStr = formatDate(item.inquiryDate);
                     item.trialDateStr = formatDate(item.trialDate);
                     item.enrollDateStr = formatDate(item.enrollDate);
+                    item.withdrawDateStr = formatDate(item.withdrawDate);
 
                     // 即入会判定 (ステータスが受講生/退会生 かつ 体験日と入会日が一致)
                     const isEnroll = (item.status === '受講生' || item.status === '退会生');
@@ -2806,6 +3029,13 @@ function handleFile(file) {
 
                     return item;
                 }).filter(Boolean).filter(item => item.store || item.status || item.currentGrade); // 空白行・除外行の排除
+
+                // 在籍期間と月受講平均時間の初期計算
+                const baseDateInput = document.getElementById('base-date');
+                const initialBaseDate = baseDateInput && baseDateInput.value ? baseDateInput.value : new Date().toISOString().split('T')[0];
+                processedData.forEach(item => {
+                    updateStudentDurationAndAvg(item, initialBaseDate);
+                });
 
                 // ダッシュボード描画への移行状況を提示
                 showLoading('ダッシュボードを描画しています...', '経年推移グラフおよび比較テーブルを組み立て中');
@@ -2843,23 +3073,30 @@ function handleFile(file) {
 
                     // フィルター項目の初期化と集計
                     populateFilters(processedData);
+                    // 横並び（2x2）レイアウト用の目的・媒体別グラフ年次タブ初期化
+                    initTrendYearTabs(processedData, 'purpose');
+                    initTrendYearTabs(processedData, 'media');
                     applyFiltersAndRender();
+                    
+                    // 初期表示時はフィルターを開いておく
+                    const filterSection = document.getElementById('filter-section');
+                    if (filterSection) {
+                        filterSection.classList.remove('collapsed');
+                    }
                     
                     // 完全に完了したためローディングを消す
                     hideLoading();
                 }, 50);
-
             } catch (err) {
                 console.error(err);
                 hideLoading();
-                alert('実績データのパース中にエラーが発生しました。ファイル形式を確認してください。');
+                alert('実績データの読み込み中にエラーが発生しました。');
             }
         };
         reader.readAsArrayBuffer(file);
     }, 50);
 }
 
-// ヘッダー配列から同義語リストに基づき列インデックスを解決する
 function resolveColumnMapping(headers) {
     const mapping = {};
     const normalizedHeaders = headers.map(h => h ? h.toString().trim().toLowerCase() : '');
@@ -2888,6 +3125,30 @@ function resolveColumnMapping(headers) {
     });
 
     return mapping;
+}
+
+// 来校目的の統合（名寄せ）
+function cleanPurpose(rawVal) {
+    if (!rawVal) return '(空白)';
+    const val = rawVal.toString().trim();
+    if (val.includes('PC趣味')) return '趣味系';
+    if (val.includes('仕事活用(Bizキャリ/DX)') || val.includes('仕事活用(Bizキャリ/デザイン)')) return 'Bizキャリ';
+    if (val.includes('仕事活用 /転職・就職') || val.includes('仕事活用/転職・就職') || val.includes('仕事活用 / 転職・就職')) return '仕事系';
+    if (val.startsWith('学割')) return '学割';
+    if (val.startsWith('速読')) return '速読';
+    if (val === 'iPad' || val === 'iPhone' || val === 'Android' || val === '脳活' || val === 'マネー') return val;
+    return val; // その他はそのまま
+}
+
+// 媒体の統合（名寄せ）
+function cleanMedia(rawVal) {
+    if (!rawVal) return 'その他';
+    const val = rawVal.toString().trim();
+    if (val.includes('新聞折込') || val.includes('情報誌') || val.includes('折込')) return '折込';
+    if (val.includes('SNS') || val.includes('スマホからの検索') || val.includes('パソコンからの検索') || val.includes('資料請求') || val.includes('検索') || val.includes('WEB') || val.includes('Web')) return 'WEB系';
+    if (val.includes('店内') || val.includes('掲示物') || val.includes('催し') || val.includes('イベント') || val.includes('設置チラシ') || val.includes('配布チラシ')) return '店内';
+    if (val.includes('紹介')) return '紹介';
+    return 'その他';
 }
 
 // 教室名の整形
@@ -2956,9 +3217,9 @@ function calculateTrialGrade(currentGrade, dateStr, courseType = '', generation 
     if (!currentGrade) return '(空白)';
     const gradeStr = currentGrade.toString().trim();
     
-    // 遡り計算の対象外とする値
+    // 遡り計算の対象外とする値（未就学は年長へ統一）
     if (gradeStr === '一般・社会人' || gradeStr === '未就学' || gradeStr === '年長') {
-        return gradeStr;
+        return gradeStr === '未就学' ? '年長' : gradeStr;
     }
 
     // 体験日（または問合せ日）の年度（4月〜翌3月基準）を特定
@@ -3013,11 +3274,11 @@ function calculateTrialGrade(currentGrade, dateStr, courseType = '', generation 
         } else {
             // 小学校1年未満になった場合は、学校区分を遡らせる
             if (schoolName === '小学校') {
-                return '年長・未就学';
+                return '年長';
             } else if (schoolName === '中学校') {
                 // 中学未満は小学校へ (中学校1年 = 小学校7年相当)
                 const elemGrade = 6 + adjustedGrade; // 1(中1) - 1(diff)=0 -> 小6
-                return elemGrade >= 1 ? `小学校${elemGrade}年` : '年長・未就学';
+                return elemGrade >= 1 ? `小学校${elemGrade}年` : '年長';
             } else if (schoolName === '高校') {
                 // 高校未満は中学校へ
                 const jhsGrade = 3 + adjustedGrade; // 1(高1) - 1(diff)=0 -> 中3
@@ -3025,7 +3286,7 @@ function calculateTrialGrade(currentGrade, dateStr, courseType = '', generation 
                     return `中学校${jhsGrade}年`;
                 } else {
                     const elemGrade = 6 + jhsGrade;
-                    return elemGrade >= 1 ? `小学校${elemGrade}年` : '年長・未就学';
+                    return elemGrade >= 1 ? `小学校${elemGrade}年` : '年長';
                 }
             }
         }
@@ -3205,7 +3466,7 @@ function getUniqueSortedValues(data, key, sortFn = null) {
 
 // 学年順のソートヘルパー
 function sortGrades(a, b) {
-    const order = ['年長・未就学', '年長', '未就学', 
+    const order = ['年長', 
                    '小学校1年', '小学校2年', '小学校3年', '小学校4年', '小学校5年', '小学校6年',
                    '中学校1年', '中学校2年', '中学校3年',
                    '高校1年', '高校2年', '高校3年', '一般・社会人', '(空白)'];
@@ -3275,6 +3536,10 @@ function applyFiltersAndRender() {
 
     renderKPIs(filteredData);
     renderCharts(filteredData);
+    
+    renderTrendChart(filteredData, 'purpose');
+    renderTrendChart(filteredData, 'media');
+    renderPurposeDurationChart(filteredData);
     renderStoreTable(allStoreFilteredData); // 全教室KPI比較マトリクス用（教室フィルタを無視）
     renderGradeTable(filteredData); // 学年別KPI比較マトリクス用（全フィルタ連動）
     renderDetailTable(filteredData);
@@ -4036,7 +4301,7 @@ function renderCharts(data) {
     // UIのタイトルや見出しを動的に更新
     const yoyInqTitle = document.getElementById('yoy-inq-title');
     const yoyRateTitle = document.getElementById('yoy-rate-title');
-    const displayModeText = yoyMode === 'inq' ? '問合せ数' : '入会者数';
+    const displayModeText = yoyMode === 'inq' ? '問合せ数' : (yoyMode === 'enroll' ? '入会者数' : '即入会数');
     if (yoyInqTitle) yoyInqTitle.textContent = `${displayModeText} 経年推移 (${sortedYears.join(' vs ')})`;
     if (yoyRateTitle) yoyRateTitle.textContent = `体験入会率 経年推移 (${sortedYears.join(' vs ')})`;
 
@@ -4046,6 +4311,7 @@ function renderCharts(data) {
         let html = '<th>月</th>';
         sortedYears.forEach(y => { html += `<th>${y}年 問合せ</th>`; });
         sortedYears.forEach(y => { html += `<th>${y}年 入会</th>`; });
+        sortedYears.forEach(y => { html += `<th>${y}年 即入会</th>`; });
         sortedYears.forEach(y => { html += `<th>${y}年 入会率</th>`; });
         tableHeader.innerHTML = html;
     }
@@ -4060,6 +4326,7 @@ function renderCharts(data) {
         yoyData[y] = {
             inq: Array(12).fill(0),
             enroll: Array(12).fill(0),
+            immediate: Array(12).fill(0),
             closed: Array(12).fill(0),
             rate: Array(12).fill(0)
         };
@@ -4076,9 +4343,11 @@ function renderCharts(data) {
             const mIdx = month - 1;
             const isEnroll = (item.status === '受講生' || item.status === '退会生');
             const isClosed = isEnroll || ['NG', '持ち帰り', '入会キャンセル'].includes(item.status);
+            const isImmediate = item.status !== '問合せ' && item.trialDateStr && item.enrollDateStr && (item.trialDateStr === item.enrollDateStr);
 
             yoyData[year].inq[mIdx]++;
             if (isEnroll) yoyData[year].enroll[mIdx]++;
+            if (isImmediate) yoyData[year].immediate[mIdx]++;
             if (isClosed) yoyData[year].closed[mIdx]++;
         }
     });
@@ -4102,6 +4371,8 @@ function renderCharts(data) {
             sortedYears.forEach(y => { rowHtml += `<td>${yoyData[y].inq[i]}</td>`; });
             // Enrolls
             sortedYears.forEach(y => { rowHtml += `<td>${yoyData[y].enroll[i]}</td>`; });
+            // Immediates
+            sortedYears.forEach(y => { rowHtml += `<td>${yoyData[y].immediate[i]}</td>`; });
             // Rates
             sortedYears.forEach(y => { rowHtml += `<td><strong>${yoyData[y].rate[i]}%</strong></td>`; });
             tr.innerHTML = rowHtml;
@@ -4130,8 +4401,8 @@ function renderCharts(data) {
         
         if (isCurrentYear) {
             const y1 = sortedYears[1];
-            const currentData = yoyMode === 'inq' ? yoyData[y].inq : yoyData[y].enroll;
-            const prevData = yoyMode === 'inq' ? yoyData[y1].inq : yoyData[y1].enroll;
+            const currentData = yoyMode === 'inq' ? yoyData[y].inq : (yoyMode === 'enroll' ? yoyData[y].enroll : yoyData[y].immediate);
+            const prevData = yoyMode === 'inq' ? yoyData[y1].inq : (yoyMode === 'enroll' ? yoyData[y1].enroll : yoyData[y1].immediate);
             
             pointBg = [];
             pointBorder = [];
@@ -4156,8 +4427,8 @@ function renderCharts(data) {
         }
 
         return {
-            label: `${y}年 ${yoyMode === 'inq' ? '問合せ' : '入会'}`,
-            data: yoyMode === 'inq' ? yoyData[y].inq : yoyData[y].enroll,
+            label: `${y}年 ${yoyMode === 'inq' ? '問合せ' : (yoyMode === 'enroll' ? '入会' : '即入会')}`,
+            data: yoyMode === 'inq' ? yoyData[y].inq : (yoyMode === 'enroll' ? yoyData[y].enroll : yoyData[y].immediate),
             borderColor: color,
             backgroundColor: color.replace('rgb', 'rgba').replace(')', ', 0.1)'),
             pointBackgroundColor: pointBg,
@@ -4517,19 +4788,22 @@ function renderDetailTable(data) {
             <td>${item.inquiryDateStr || '-'}</td>
             <td>${item.trialDateStr || '-'}</td>
             <td>${item.enrollDateStr || '-'}</td>
+            <td>${item.withdrawDateStr || '-'}</td>
             <td>${item.studyTime !== '' && item.studyTime !== undefined ? item.studyTime : '-'}</td>
+            <td>${item.durationMonths !== null && item.durationMonths !== undefined ? item.durationMonths + 'ヶ月' : '-'}</td>
+            <td>${item.avgStudyTimePerMonth !== null && item.avgStudyTimePerMonth !== undefined ? item.avgStudyTimePerMonth + '時間/月' : '-'}</td>
         `;
         tbody.appendChild(tr);
     });
 
     if (data.length > maxDisplay) {
         const trInfo = document.createElement('tr');
-        trInfo.innerHTML = `<td colspan="11" style="text-align:center; color:var(--text-muted); font-style:italic;">表示件数を最大 ${maxDisplay} 件に制限しています (全体 ${data.length} 件中)</td>`;
+        trInfo.innerHTML = `<td colspan="14" style="text-align:center; color:var(--text-muted); font-style:italic;">表示件数を最大 ${maxDisplay} 件に制限しています (全体 ${data.length} 件中)</td>`;
         tbody.appendChild(trInfo);
     }
 
     if (data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="11" style="text-align:center; color:var(--text-muted);">データがありません</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="14" style="text-align:center; color:var(--text-muted);">データがありません</td></tr>';
     }
 }
 
@@ -4722,9 +4996,12 @@ function applyDetailTableStyles(ws) {
                 const headerCell = ws[headerAddress];
                 const headerText = headerCell ? String(headerCell.v) : '';
                 
-                if (headerText === 'No' || headerText === '受講時間') {
+                if (headerText === 'No' || headerText === '受講時間' || headerText === '在籍期間（月）' || headerText === '月受講平均時間') {
                     cell.s.alignment.horizontal = 'right';
-                } else if (['問合せ日', '体験日時', '入会日', '受講生ID'].includes(headerText)) {
+                    if (headerText === '在籍期間（月）' || headerText === '月受講平均時間') {
+                        cell.z = '0.0';
+                    }
+                } else if (['問合せ日', '体験日時', '入会日', '退会日', '受講生ID'].includes(headerText)) {
                     cell.s.alignment.horizontal = 'center';
                 } else {
                     cell.s.alignment.horizontal = 'left';
@@ -4899,7 +5176,10 @@ function exportDetailTableToExcel() {
                 '問合せ日': item.inquiryDateStr || '',
                 '体験日時': item.trialDateStr || '',
                 '入会日': item.enrollDateStr || '',
-                '受講時間': item.studyTime !== '' && item.studyTime !== undefined ? item.studyTime : ''
+                '退会日': item.withdrawDateStr || '',
+                '受講時間': item.studyTime !== '' && item.studyTime !== undefined ? item.studyTime : '',
+                '在籍期間（月）': item.durationMonths !== null && item.durationMonths !== undefined ? item.durationMonths : '',
+                '月受講平均時間': item.avgStudyTimePerMonth !== null && item.avgStudyTimePerMonth !== undefined ? item.avgStudyTimePerMonth : ''
             }));
 
             const ws = XLSX.utils.json_to_sheet(exportRows);
@@ -4973,22 +5253,33 @@ function initChartTableToggles() {
         toggleYoyBtn2.addEventListener('click', handleYoyToggle);
     }
 
-    // YoY Inquiries / Enrolls mode toggle buttons
+    // YoY Inquiries / Enrolls / Immediate mode toggle buttons
     const btnInq = document.getElementById('btn-yoy-mode-inq');
     const btnEnroll = document.getElementById('btn-yoy-mode-enroll');
+    const btnImmediate = document.getElementById('btn-yoy-mode-immediate');
+    
+    const updateYoyToggleUI = (activeBtn, inactiveBtn1, inactiveBtn2) => {
+        if (activeBtn) {
+            activeBtn.classList.add('active');
+            activeBtn.style.background = 'var(--surface)';
+            activeBtn.style.color = 'var(--primary)';
+            activeBtn.style.boxShadow = 'var(--shadow-sm)';
+        }
+        [inactiveBtn1, inactiveBtn2].forEach(btn => {
+            if (btn) {
+                btn.classList.remove('active');
+                btn.style.background = 'transparent';
+                btn.style.color = 'var(--text-secondary)';
+                btn.style.boxShadow = 'none';
+            }
+        });
+    };
     
     if (btnInq && btnEnroll) {
         btnInq.addEventListener('click', () => {
             if (yoyMode === 'inq') return;
             yoyMode = 'inq';
-            btnInq.classList.add('active');
-            btnEnroll.classList.remove('active');
-            btnInq.style.background = 'var(--surface)';
-            btnInq.style.color = 'var(--primary)';
-            btnInq.style.boxShadow = 'var(--shadow-sm)';
-            btnEnroll.style.background = 'transparent';
-            btnEnroll.style.color = 'var(--text-secondary)';
-            btnEnroll.style.boxShadow = 'none';
+            updateYoyToggleUI(btnInq, btnEnroll, btnImmediate);
             // Redraw charts
             renderCharts(filteredData);
         });
@@ -4996,17 +5287,20 @@ function initChartTableToggles() {
         btnEnroll.addEventListener('click', () => {
             if (yoyMode === 'enroll') return;
             yoyMode = 'enroll';
-            btnEnroll.classList.add('active');
-            btnInq.classList.remove('active');
-            btnEnroll.style.background = 'var(--surface)';
-            btnEnroll.style.color = 'var(--primary)';
-            btnEnroll.style.boxShadow = 'var(--shadow-sm)';
-            btnInq.style.background = 'transparent';
-            btnInq.style.color = 'var(--text-secondary)';
-            btnInq.style.boxShadow = 'none';
+            updateYoyToggleUI(btnEnroll, btnInq, btnImmediate);
             // Redraw charts
             renderCharts(filteredData);
         });
+
+        if (btnImmediate) {
+            btnImmediate.addEventListener('click', () => {
+                if (yoyMode === 'immediate') return;
+                yoyMode = 'immediate';
+                updateYoyToggleUI(btnImmediate, btnInq, btnEnroll);
+                // Redraw charts
+                renderCharts(filteredData);
+            });
+        }
     }
 
     if (exportGradeBtn) {
@@ -5303,7 +5597,9 @@ function renderGradeTable(data) {
                 enroll: 0,
                 immediateEnroll: 0,
                 ng: 0,
-                withdraw: 0
+                withdraw: 0,
+                totalDuration: 0,
+                durationCount: 0
             };
         }
 
@@ -5320,6 +5616,10 @@ function renderGradeTable(data) {
         const isEnroll = ['入会済（受講中）', '退会済', '受講生', '退会生'].includes(item.status);
         if (isEnroll) {
             summary.enroll++;
+            if (item.durationMonths !== null && item.durationMonths !== undefined) {
+                summary.totalDuration += item.durationMonths;
+                summary.durationCount++;
+            }
         }
 
         // 即入会数 (体験日と入会日が同日)
@@ -5351,6 +5651,7 @@ function renderGradeTable(data) {
         if (sum.trialNgRate < 0) sum.trialNgRate = 0; // マイナス値防ぎ
         sum.totalEnrollRate = sum.total > 0 ? (sum.enroll / sum.total * 100) : 0;
         sum.immediateEnrollRate = sum.enroll > 0 ? (sum.immediateEnroll / sum.enroll * 100) : 0;
+        sum.avgDuration = sum.durationCount > 0 ? (sum.totalDuration / sum.durationCount) : 0;
     });
 
     // ソート処理
@@ -5418,6 +5719,7 @@ function renderGradeTable(data) {
             <td class="text-right ${getCellClass(sum.immediateEnrollRate, avg.immediateEnrollRate)}">${sum.immediateEnrollRate.toFixed(1)}%</td>
             <td class="text-right">${sum.ng.toLocaleString()}</td>
             <td class="text-right">${sum.withdraw.toLocaleString()}</td>
+            <td class="text-right">${sum.avgDuration > 0 ? sum.avgDuration.toFixed(1) + 'ヶ月' : '-'}</td>
         `;
         tbody.appendChild(tr);
     });
@@ -5476,7 +5778,7 @@ function exportGradeTableToExcel() {
             const headerRow = [
                 "学年", "受講種別", "総問合せ数", "体験実施数", "体験実施率",
                 "体験入会率", "体験NG率", "入会数", "問合せ入会率",
-                "即入会数", "即入会率", "NG数 (全体比)", "退会者数"
+                "即入会数", "即入会率", "NG数 (全体比)", "退会者数", "平均在籍期間 (月)"
             ];
 
             const rows = [headerRow];
@@ -5512,7 +5814,8 @@ function exportGradeTableToExcel() {
                     sum.immediateEnroll,
                     sum.immediateEnrollRate / 100,
                     sum.ng,
-                    sum.withdraw
+                    sum.withdraw,
+                    sum.avgDuration
                 ]);
             });
 
@@ -5530,7 +5833,8 @@ function exportGradeTableToExcel() {
                 Math.round(currentGradeSummaryList.reduce((acc, c) => acc + c.immediateEnroll, 0) / count),
                 avg.immediateEnrollRate / 100,
                 Math.round(currentGradeSummaryList.reduce((acc, c) => acc + c.ng, 0) / count),
-                Math.round(currentGradeSummaryList.reduce((acc, c) => acc + c.withdraw, 0) / count)
+                Math.round(currentGradeSummaryList.reduce((acc, c) => acc + c.withdraw, 0) / count),
+                currentGradeSummaryList.reduce((acc, c) => acc + c.avgDuration, 0) / count
             ];
             rows.push(avgRow);
 
@@ -5553,7 +5857,8 @@ function exportGradeTableToExcel() {
                 { wch: 12 }, // 即入会数
                 { wch: 12 }, // 即入会率
                 { wch: 14 }, // NG数
-                { wch: 12 }  // 退会者数
+                { wch: 12 }, // 退会者数
+                { wch: 18 }  // 平均在籍期間 (月)
             ];
 
             // 1行目の高さ
@@ -5610,6 +5915,9 @@ function exportGradeTableToExcel() {
                     if (c === 2 || c === 3 || c === 7 || c === 9 || c === 11 || c === 12) {
                         // 整数（問合せ数、体験実施数、入会数、即入会数、NG数、退会数）
                         cell.z = '#,##0';
+                    } else if (c === 13) {
+                        // 平均在籍期間 (月)
+                        cell.z = '0.0';
                     } else if (c === 4 || c === 5 || c === 6 || c === 8 || c === 10) {
                         // パーセンテージ
                         cell.z = '0.0%';
@@ -5670,6 +5978,8 @@ function exportGradeAllStoresTableToExcel() {
             allStoreFilteredData.forEach(item => {
                 const storeCode = item.storeCode || "";
                 const store = item.store || "(不明)";
+                const division = item.division || "未分類";
+                const area = item.area || "未分類";
                 const grade = item.trialGrade || "(空白)";
                 const course = item.courseType || "(空白)";
                 const key = `${storeCode}::${store}::${grade}::${course}`;
@@ -5678,6 +5988,8 @@ function exportGradeAllStoresTableToExcel() {
                     summaryMap[key] = {
                         storeCode: storeCode,
                         store: store,
+                        division: division,
+                        area: area,
                         grade: grade,
                         courseType: course,
                         total: 0,
@@ -5685,7 +5997,9 @@ function exportGradeAllStoresTableToExcel() {
                         enroll: 0,
                         immediateEnroll: 0,
                         ng: 0,
-                        withdraw: 0
+                        withdraw: 0,
+                        totalDuration: 0,
+                        durationCount: 0
                     };
                 }
 
@@ -5702,6 +6016,10 @@ function exportGradeAllStoresTableToExcel() {
                 const isEnroll = ['入会済（受講中）', '退会済', '受講生', '退会生'].includes(item.status);
                 if (isEnroll) {
                     sum.enroll++;
+                    if (item.durationMonths !== null && item.durationMonths !== undefined) {
+                        sum.totalDuration += item.durationMonths;
+                        sum.durationCount++;
+                    }
                 }
 
                 // 即入会数
@@ -5733,6 +6051,7 @@ function exportGradeAllStoresTableToExcel() {
                 if (sum.trialNgRate < 0) sum.trialNgRate = 0;
                 sum.totalEnrollRate = sum.total > 0 ? (sum.enroll / sum.total * 100) : 0;
                 sum.immediateEnrollRate = sum.enroll > 0 ? (sum.immediateEnroll / sum.enroll * 100) : 0;
+                sum.avgDuration = sum.durationCount > 0 ? (sum.totalDuration / sum.durationCount) : 0;
             });
 
             // ソート処理
@@ -5797,16 +6116,18 @@ function exportGradeAllStoresTableToExcel() {
             // Excel用データの生成
             const wb = XLSX.utils.book_new();
             
-            // ヘッダー定義
+            // ヘッダー定義（A列に管轄、B列にエリア）
             const headerRow = [
-                "教場No", "教室名", "学年", "受講種別", "総問合せ数", "体験実施数", "体験実施率",
+                "管轄", "エリア", "教場No", "教室名", "学年", "受講種別", "総問合せ数", "体験実施数", "体験実施率",
                 "体験入会率", "体験NG率", "入会数", "問合せ入会率",
-                "即入会数", "即入会率", "NG数 (全体比)", "退会者数"
+                "即入会数", "即入会率", "NG数 (全体比)", "退会者数", "平均在籍期間 (月)"
             ];
             const rows = [headerRow];
 
             summaryList.forEach(sum => {
                 rows.push([
+                    sum.division,
+                    sum.area,
                     sum.storeCode,
                     sum.store,
                     sum.grade,
@@ -5821,7 +6142,8 @@ function exportGradeAllStoresTableToExcel() {
                     sum.immediateEnroll,
                     sum.immediateEnrollRate / 100,
                     sum.ng,
-                    sum.withdraw
+                    sum.withdraw,
+                    sum.avgDuration
                 ]);
             });
 
@@ -5830,6 +6152,8 @@ function exportGradeAllStoresTableToExcel() {
 
             // 列幅の設定
             ws['!cols'] = [
+                { wch: 10 }, // 管轄
+                { wch: 12 }, // エリア
                 { wch: 10 }, // 教場No
                 { wch: 18 }, // 教室名
                 { wch: 16 }, // 学年
@@ -5844,7 +6168,8 @@ function exportGradeAllStoresTableToExcel() {
                 { wch: 12 }, // 即入会数
                 { wch: 12 }, // 即入会率
                 { wch: 14 }, // NG数
-                { wch: 12 }  // 退会者数
+                { wch: 12 }, // 退会者数
+                { wch: 18 }  // 平均在籍期間 (月)
             ];
 
             ws['!rows'] = [{ hpt: 26 }]; // ヘッダー行高さ
@@ -5881,17 +6206,19 @@ function exportGradeAllStoresTableToExcel() {
                     }
 
                     // 数値列は右寄せ
-                    if (c >= 4) {
+                    if (c >= 6) {
                         cell.s.alignment.horizontal = 'right';
-                    } else if (c === 0) {
-                        // 教場Noは中央寄せ
+                    } else if (c <= 2) {
+                        // 管轄、エリア、教場Noは中央寄せ
                         cell.s.alignment.horizontal = 'center';
                     }
 
                     // 書式の適用
-                    if (c === 4 || c === 5 || c === 9 || c === 11 || c === 13 || c === 14) {
+                    if (c === 6 || c === 7 || c === 11 || c === 13 || c === 15 || c === 16) {
                         cell.z = '#,##0';
-                    } else if (c === 6 || c === 7 || c === 8 || c === 10 || c === 12) {
+                    } else if (c === 17) {
+                        cell.z = '0.0';
+                    } else if (c === 8 || c === 9 || c === 10 || c === 12 || c === 14) {
                         cell.z = '0.0%';
                         
                         // コース別の全店平均と比較して色分け
@@ -5902,10 +6229,10 @@ function exportGradeAllStoresTableToExcel() {
                         if (stats) {
                             const val = cell.v * 100;
                             let targetAvg = 0;
-                            if (c === 6) targetAvg = stats.avgTrialRate;
-                            if (c === 7) targetAvg = stats.avgTrialEnrollRate;
-                            if (c === 10) targetAvg = stats.avgTotalEnrollRate;
-                            if (c === 12) targetAvg = stats.avgImmediateEnrollRate;
+                            if (c === 8) targetAvg = stats.avgTrialRate;
+                            if (c === 9) targetAvg = stats.avgTrialEnrollRate;
+                            if (c === 12) targetAvg = stats.avgTotalEnrollRate;
+                            if (c === 14) targetAvg = stats.avgImmediateEnrollRate;
 
                             if (targetAvg > 0) {
                                 if (val > targetAvg) {
@@ -5934,6 +6261,481 @@ function exportGradeAllStoresTableToExcel() {
         }
     }, 50);
 }
+
+// -----------------------------------------
+// 汎用トレンドグラフ（目的別 / 媒体別）描画ロジック
+// -----------------------------------------
+let purposeTrendMetric = 'inquiry';
+let purposeTrendYear = null;
+let mediaTrendMetric = 'inquiry';
+let mediaTrendYear = null;
+
+function initTrendYearTabs(data, type) {
+    const isPurpose = type === 'purpose';
+    const containerId = isPurpose ? 'purpose-year-container' : 'media-year-container';
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
+    container.innerHTML = '';
+    const years = [...new Set(data.map(item => {
+        const dateStr = item.inquiryDateStr || item.trialDateStr;
+        return dateStr ? dateStr.substring(0, 4) : '';
+    }).filter(y => y !== ''))].sort((a, b) => b.localeCompare(a)); // 降順
+
+    if (years.length === 0) return;
+
+    let currentYear = isPurpose ? purposeTrendYear : mediaTrendYear;
+    if (!currentYear || !years.includes(currentYear)) {
+        currentYear = years[0];
+        if (isPurpose) purposeTrendYear = currentYear;
+        else mediaTrendYear = currentYear;
+    }
+
+    years.forEach(year => {
+        const btn = document.createElement('button');
+        btn.textContent = year + '年';
+        btn.className = 'tab-button';
+        btn.style.cssText = 'padding: 4px 8px; font-size: 0.75rem; border: none; background: transparent; cursor: pointer; border-radius: 4px; font-weight: bold; transition: all 0.2s;';
+        
+        if (year === currentYear) {
+            btn.classList.add('active');
+            btn.style.color = 'var(--text-primary)';
+        } else {
+            btn.style.color = 'var(--text-muted)';
+        }
+
+        btn.addEventListener('click', () => {
+            if (isPurpose) purposeTrendYear = year;
+            else mediaTrendYear = year;
+            
+            Array.from(container.children).forEach(child => {
+                child.classList.remove('active');
+                child.style.color = 'var(--text-muted)';
+            });
+            btn.classList.add('active');
+            btn.style.color = 'var(--text-primary)';
+            
+            renderTrendChart(filteredData, type);
+        });
+        container.appendChild(btn);
+    });
+}
+
+function renderTrendChart(data, type) {
+    const isPurpose = type === 'purpose';
+    const canvasId = isPurpose ? 'chart-purpose-trend' : 'chart-media-trend';
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+
+    const chartKey = isPurpose ? 'purposeTrend' : 'mediaTrend';
+    if (charts[chartKey]) {
+        charts[chartKey].destroy();
+        charts[chartKey] = null;
+    }
+
+    if (data.length === 0) return;
+
+    const axisKey = type; // 'purpose' or 'media'
+    const metricMode = isPurpose ? purposeTrendMetric : mediaTrendMetric;
+    let targetYear = isPurpose ? purposeTrendYear : mediaTrendYear;
+
+    if (!targetYear) {
+        const years = data.map(item => {
+            const dateStr = item.inquiryDateStr || item.trialDateStr;
+            return dateStr ? dateStr.substring(0, 4) : '';
+        }).filter(y => y !== '');
+        if (years.length > 0) {
+            targetYear = [...new Set(years)].sort((a, b) => b.localeCompare(a))[0];
+            if (isPurpose) purposeTrendYear = targetYear;
+            else mediaTrendYear = targetYear;
+        }
+    }
+
+    const itemValues = new Set();
+    data.forEach(item => {
+        const val = item[axisKey] || '(空白)';
+        itemValues.add(val);
+    });
+    
+    const purposeOrder = ['仕事活用', '資格取得', '転職', '趣味系', '学割', 'プログラミング', '速読', '脳活', 'iPhone', 'iPad', 'Android'];
+    const mediaOrder = ['WEB系', '折込', '店内', '紹介', 'その他'];
+    
+    const sortedItems = [...itemValues].sort((a, b) => {
+        if (isPurpose) {
+            const idxA = purposeOrder.indexOf(a);
+            const idxB = purposeOrder.indexOf(b);
+            if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+            if (idxA !== -1) return -1;
+            if (idxB !== -1) return 1;
+        } else {
+            const idxA = mediaOrder.indexOf(a);
+            const idxB = mediaOrder.indexOf(b);
+            if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+            if (idxA !== -1) return -1;
+            if (idxB !== -1) return 1;
+        }
+        return a.localeCompare(b, 'ja');
+    });
+
+    const colorMap = {};
+    sortedItems.forEach((item, idx) => colorMap[item] = idx);
+
+    const yearFilteredData = data.filter(item => {
+        const dateStr = item.inquiryDateStr || item.trialDateStr;
+        return dateStr && dateStr.startsWith(targetYear);
+    });
+
+    const months = Array.from({ length: 12 }, (_, i) => `${i + 1}月`);
+    const datasetValues = {};
+    const datasetDenominators = {};
+
+    sortedItems.forEach(item => {
+        datasetValues[item] = Array(12).fill(0);
+        if (metricMode === 'trialRate') datasetDenominators[item] = Array(12).fill(0);
+    });
+
+    yearFilteredData.forEach(item => {
+        const dateStr = item.inquiryDateStr || item.trialDateStr;
+        if (!dateStr) return;
+        const date = new Date(dateStr);
+        if (isNaN(date.getTime())) return;
+        const monthIdx = date.getMonth();
+        const val = item[axisKey] || '(空白)';
+        if (!datasetValues[val]) return;
+
+        if (metricMode === 'inquiry') {
+            datasetValues[val][monthIdx]++;
+        } else if (metricMode === 'enroll') {
+            const isEnroll = ['受講生', '退会生', '入会済（受講中）', '退会済'].includes(item.status);
+            if (isEnroll) datasetValues[val][monthIdx]++;
+        } else if (metricMode === 'trialRate') {
+            const isNotTrial = ['問合せ', '体験キャンセル', '体験予約に至らず'].includes(item.status);
+            if (!isNotTrial) datasetValues[val][monthIdx]++;
+            datasetDenominators[val][monthIdx]++;
+        }
+    });
+
+    if (metricMode === 'trialRate') {
+        sortedItems.forEach(item => {
+            for (let m = 0; m < 12; m++) {
+                const num = datasetValues[item][m];
+                const den = datasetDenominators[item][m];
+                datasetValues[item][m] = den > 0 ? parseFloat((num / den * 100).toFixed(1)) : 0;
+            }
+        });
+    }
+
+    const colors = [
+        'rgba(30, 58, 138, 0.75)', 'rgba(16, 185, 129, 0.75)', 'rgba(245, 158, 11, 0.75)', 'rgba(239, 68, 68, 0.75)',
+        'rgba(139, 92, 246, 0.75)', 'rgba(6, 182, 212, 0.75)', 'rgba(236, 72, 153, 0.75)', 'rgba(249, 115, 22, 0.75)',
+        'rgba(100, 116, 139, 0.75)', 'rgba(132, 204, 22, 0.75)', 'rgba(20, 184, 166, 0.75)', 'rgba(168, 85, 247, 0.75)',
+        'rgba(225, 29, 72, 0.75)', 'rgba(251, 191, 36, 0.75)', 'rgba(156, 163, 175, 0.75)'
+    ];
+    const borderColors = colors.map(c => c.replace('0.75', '1.0'));
+    const isRate = metricMode === 'trialRate';
+
+    const highlightDataset = (chart, hoveredIndex) => {
+        chart.data.datasets.forEach((dataset, idx) => {
+            const itemLabel = dataset.label;
+            const colorIdx = (colorMap[itemLabel] !== undefined ? colorMap[itemLabel] : idx) % colors.length;
+            const baseColor = colors[colorIdx];
+            const baseBorder = borderColors[colorIdx];
+            if (hoveredIndex === null || idx === hoveredIndex) {
+                dataset.backgroundColor = isRate ? baseBorder : baseColor;
+                dataset.borderColor = baseBorder;
+                if (isRate) dataset.borderWidth = 3;
+            } else {
+                dataset.backgroundColor = baseColor.replace('0.75', '0.1').replace('1.0', '0.1');
+                dataset.borderColor = baseBorder.replace('1.0', '0.1');
+                if (isRate) dataset.borderWidth = 1;
+            }
+        });
+        chart.update('none');
+    };
+
+    const datasets = sortedItems.map((item, idx) => {
+        const colorIdx = colorMap[item] % colors.length;
+        return {
+            label: item,
+            data: datasetValues[item],
+            backgroundColor: isRate ? borderColors[colorIdx] : colors[colorIdx],
+            borderColor: borderColors[colorIdx],
+            borderWidth: isRate ? 2 : 1,
+            borderRadius: isRate ? 0 : 4,
+            fill: false,
+            tension: 0.15
+        };
+    });
+
+    const isStacked = !isRate;
+
+    charts[chartKey] = new Chart(ctx, {
+        type: isRate ? 'line' : 'bar',
+        data: { labels: months, datasets: datasets },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            interaction: { mode: 'nearest', intersect: true },
+            onHover: (event, activeElements, chart) => {
+                const activePoints = chart.getElementsAtEventForMode(event, 'nearest', { intersect: true }, true);
+                if (activePoints && activePoints.length > 0) {
+                    highlightDataset(chart, activePoints[0].datasetIndex);
+                } else {
+                    highlightDataset(chart, null);
+                }
+            },
+            scales: {
+                x: { stacked: isStacked, grid: { display: false } },
+                y: {
+                    stacked: isStacked, beginAtZero: true,
+                    ticks: { precision: isRate ? 1 : 0, callback: function(value) { return isRate ? value + '%' : value; } },
+                    grid: { color: 'rgba(0, 0, 0, 0.05)' }
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    onHover: (event, legendItem, legend) => highlightDataset(legend.chart, legendItem.datasetIndex),
+                    onLeave: (event, legendItem, legend) => highlightDataset(legend.chart, null),
+                    onClick: Chart.defaults.plugins.legend.onClick,
+                    labels: { boxWidth: 10, padding: 10, font: { size: 10 } }
+                },
+                tooltip: {
+                    mode: 'index', intersect: false,
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) label += ': ';
+                            if (context.parsed.y !== null) label += isRate ? context.parsed.y + '%' : context.parsed.y + ' 件';
+                            return label;
+                        },
+                        footer: isRate ? null : (tooltipItems) => {
+                            let sum = 0;
+                            tooltipItems.forEach(x => sum += x.parsed.y);
+                            return `合計: ${sum} 件`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// 在籍期間と月受講平均時間の計算
+function updateStudentDurationAndAvg(item, baseDateStr) {
+    if (!item.enrollDateStr) {
+        item.durationMonths = null;
+        item.avgStudyTimePerMonth = null;
+        return;
+    }
+
+    const isEnroll = ['受講生', '退会生', '入会済（受講中）', '退会済'].includes(item.status);
+    if (!isEnroll) {
+        item.durationMonths = null;
+        item.avgStudyTimePerMonth = null;
+        return;
+    }
+
+    // 終了日の決定：退会済・退会生で退会日があれば退会日。なければ基準日。
+    const hasWithdraw = ['退会済', '退会生'].includes(item.status);
+    let endDateStr = (hasWithdraw && item.withdrawDateStr) ? item.withdrawDateStr : baseDateStr;
+    
+    if (!endDateStr) {
+        const today = new Date();
+        endDateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    }
+
+    const d1 = new Date(item.enrollDateStr);
+    const d2 = new Date(endDateStr);
+    
+    if (isNaN(d1.getTime()) || isNaN(d2.getTime())) {
+        item.durationMonths = null;
+        item.avgStudyTimePerMonth = null;
+        return;
+    }
+
+    const diffMs = d2.getTime() - d1.getTime();
+    if (diffMs <= 0) {
+        item.durationMonths = 0.0;
+    } else {
+        const days = diffMs / (1000 * 60 * 60 * 24);
+        item.durationMonths = parseFloat((days / 30.4375).toFixed(1)); // 小数点第1位
+    }
+
+    // 平均受講時間の計算
+    const studyTime = parseFloat(item.studyTime);
+    if (isNaN(studyTime) || studyTime <= 0 || !item.durationMonths || item.durationMonths <= 0) {
+        item.avgStudyTimePerMonth = 0.0;
+    } else {
+        item.avgStudyTimePerMonth = parseFloat((studyTime / item.durationMonths).toFixed(1)); // 小数点第1位
+    }
+}
+
+// -----------------------------------------
+// 来校目的別 受講期間グラフ描画ロジック
+// -----------------------------------------
+function renderPurposeDurationChart(data) {
+    const canvas = document.getElementById('chart-purpose-duration');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+
+    if (charts.purposeDuration) {
+        charts.purposeDuration.destroy();
+        charts.purposeDuration = null;
+    }
+
+    if (data.length === 0) return;
+
+    // ステータス絞り込みの適用
+    let statusFiltered = data.filter(item => {
+        if (!item.enrollDateStr || item.durationMonths === null || item.durationMonths === undefined) {
+            return false;
+        }
+        if (purposeDurationStatus === 'active') {
+            return ['受講生', '入会済（受講中）'].includes(item.status);
+        } else if (purposeDurationStatus === 'withdrawn') {
+            return ['退会生', '退会済'].includes(item.status);
+        }
+        return ['受講生', '退会生', '入会済（受講中）', '退会済'].includes(item.status);
+    });
+
+    const purposeOrder = ['仕事活用', '資格取得', '転職', '趣味系', '学割', 'プログラミング', '速読', '脳活', 'iPhone', 'iPad', 'Android'];
+
+    const durationMap = {};
+    purposeOrder.forEach(purpose => {
+        durationMap[purpose] = [];
+    });
+
+    statusFiltered.forEach(item => {
+        const purpose = item.purpose || '(空白)';
+        if (durationMap[purpose]) {
+            durationMap[purpose].push(item.durationMonths);
+        }
+    });
+
+    const chartLabels = [];
+    const chartValues = [];
+    const rawValuesMap = {}; 
+
+    purposeOrder.forEach(purpose => {
+        const list = durationMap[purpose];
+        if (list.length > 0) {
+            let val = 0;
+            if (purposeDurationMetric === 'median') {
+                const sorted = [...list].sort((a, b) => a - b);
+                const mid = Math.floor(sorted.length / 2);
+                if (sorted.length % 2 === 0) {
+                    val = parseFloat(((sorted[mid - 1] + sorted[mid]) / 2).toFixed(1));
+                } else {
+                    val = sorted[mid];
+                }
+            } else {
+                const sum = list.reduce((a, b) => a + b, 0);
+                val = parseFloat((sum / list.length).toFixed(1));
+            }
+            chartLabels.push(purpose);
+            chartValues.push(val);
+            rawValuesMap[purpose] = list.length;
+        }
+    });
+
+    if (chartLabels.length === 0) return;
+
+    const colors = [
+        'rgba(30, 58, 138, 0.75)', 'rgba(16, 185, 129, 0.75)', 'rgba(217, 70, 239, 0.75)', 
+        'rgba(245, 158, 11, 0.75)', 'rgba(239, 68, 68, 0.75)', 'rgba(99, 102, 241, 0.75)', 
+        'rgba(14, 116, 144, 0.75)', 'rgba(126, 34, 206, 0.75)', 'rgba(13, 148, 136, 0.75)', 
+        'rgba(244, 63, 94, 0.75)', 'rgba(101, 163, 13, 0.75)', 'rgba(225, 29, 72, 0.75)', 
+        'rgba(2, 132, 199, 0.75)', 'rgba(180, 83, 9, 0.75)', 'rgba(20, 184, 166, 0.75)'
+    ];
+    const borderColors = [
+        'rgba(30, 58, 138, 1)', 'rgba(16, 185, 129, 1)', 'rgba(217, 70, 239, 1)', 
+        'rgba(245, 158, 11, 1)', 'rgba(239, 68, 68, 1)', 'rgba(99, 102, 241, 1)', 
+        'rgba(14, 116, 144, 1)', 'rgba(126, 34, 206, 1)', 'rgba(13, 148, 136, 1)', 
+        'rgba(244, 63, 94, 1)', 'rgba(101, 163, 13, 1)', 'rgba(225, 29, 72, 1)', 
+        'rgba(2, 132, 199, 1)', 'rgba(180, 83, 9, 1)', 'rgba(20, 184, 166, 1)'
+    ];
+
+    const bgColorsForChart = [];
+    const borderColorsForChart = [];
+
+    chartLabels.forEach(label => {
+        const idx = purposeOrder.indexOf(label);
+        if (idx !== -1) {
+            bgColorsForChart.push(colors[idx % colors.length]);
+            borderColorsForChart.push(borderColors[idx % borderColors.length]);
+        } else {
+            bgColorsForChart.push('rgba(156, 163, 175, 0.75)');
+            borderColorsForChart.push('rgba(156, 163, 175, 1)');
+        }
+    });
+
+    const formatDuration = (months) => {
+        if (months === null || months === undefined) return '';
+        const y = Math.floor(months / 12);
+        const m = Math.round(months % 12);
+        if (y > 0) {
+            return `${months}ヶ月 (${y}年${m}ヶ月)`;
+        }
+        return `${months}ヶ月`;
+    };
+
+    const metricLabel = purposeDurationMetric === 'median' ? '在籍期間 中央値' : '在籍期間 平均値';
+
+    charts.purposeDuration = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: chartLabels,
+            datasets: [{
+                label: metricLabel,
+                data: chartValues,
+                backgroundColor: bgColorsForChart,
+                borderColor: borderColorsForChart,
+                borderWidth: 1,
+                borderRadius: 4
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: (context) => {
+                            const val = context.parsed.x;
+                            const label = context.dataset.label || '';
+                            const purpose = context.label;
+                            const count = rawValuesMap[purpose] || 0;
+                            return `${label}: ${formatDuration(val)} (サンプル数: ${count}名)`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: '在籍期間 (ヶ月)',
+                        font: {
+                            weight: 'bold'
+                        }
+                    }
+                },
+                y: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+}
+
 
 
 </script>
