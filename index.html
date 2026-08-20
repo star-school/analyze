@@ -1627,6 +1627,21 @@ header {
                 height: 380px !important; /* 大きく表示 */
             }
             
+            /* 6ページ目 (退会月の推移) */
+            .print-page-6-container {
+                page-break-before: always !important;
+                break-before: page !important;
+                margin-top: 10px !important;
+            }
+            .print-page-6-container .chart-card {
+                width: 100% !important;
+                display: block !important;
+                margin-right: 0 !important;
+            }
+            .print-page-6-container .chart-container {
+                height: 380px !important; /* 大きく表示 */
+            }
+            
             /* 3ページ目のインサイトパネル */
             #insight-panel {
                 page-break-before: always !important;
@@ -1834,6 +1849,12 @@ header {
                         <label for="filter-date-end">日付 範囲 (終了)</label>
                         <input type="date" id="filter-date-end" style="padding: 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.9rem; background: var(--background); color: var(--text-primary); cursor: pointer; outline: none;">
                     </div>
+                    <div class="filter-group" style="grid-column: 1 / -1; margin-top: 10px;">
+                        <label>期間クイック選択 (年単位)</label>
+                        <div id="quick-date-buttons" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <!-- analysis.js から動的に生成されます -->
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -2012,7 +2033,10 @@ header {
                     <!-- 来校目的別 獲得推移グラフ -->
                     <div class="chart-card">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 5px;">
-                            <h2 style="margin: 0; border-left: 4px solid var(--primary); padding-left: 10px;">来校目的別 獲得推移</h2>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <h2 style="margin: 0; border-left: 4px solid var(--primary); padding-left: 10px;">来校目的別 獲得推移</h2>
+                                <button id="export-purpose-trend-excel-btn" class="btn-chart-action excel" style="padding: 4px 8px; font-size: 0.75rem;">📥 Excel出力</button>
+                            </div>
                             <div style="display: flex; gap: 5px; align-items: center;">
                                 <div id="purpose-year-container" class="tab-container" style="display: flex; background: var(--background); padding: 3px; border-radius: 6px; border: 1px solid var(--border);"></div>
                                 <div class="tab-container" style="display: flex; background: var(--background); padding: 3px; border-radius: 6px; border: 1px solid var(--border);">
@@ -2035,7 +2059,10 @@ header {
                     <!-- 媒体別 獲得推移グラフ -->
                     <div class="chart-card">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 5px;">
-                            <h2 style="margin: 0; border-left: 4px solid var(--primary); padding-left: 10px;">媒体別 獲得推移</h2>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <h2 style="margin: 0; border-left: 4px solid var(--primary); padding-left: 10px;">媒体別 獲得推移</h2>
+                                <button id="export-media-trend-excel-btn" class="btn-chart-action excel" style="padding: 4px 8px; font-size: 0.75rem;">📥 Excel出力</button>
+                            </div>
                             <div style="display: flex; gap: 5px; align-items: center;">
                                 <div id="media-year-container" class="tab-container" style="display: flex; background: var(--background); padding: 3px; border-radius: 6px; border: 1px solid var(--border);"></div>
                                 <div class="tab-container" style="display: flex; background: var(--background); padding: 3px; border-radius: 6px; border: 1px solid var(--border);">
@@ -2058,7 +2085,10 @@ header {
                 <div class="charts-grid" style="grid-template-columns: 1fr; margin-bottom: 20px;">
                     <div class="chart-card">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 5px;">
-                            <h2 style="margin: 0; border-left: 4px solid var(--primary); padding-left: 10px;">来校目的別 受講期間</h2>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <h2 style="margin: 0; border-left: 4px solid var(--primary); padding-left: 10px;">来校目的別 受講期間</h2>
+                                <button id="export-purpose-duration-excel-btn" class="btn-chart-action excel" style="padding: 4px 8px; font-size: 0.75rem;">📥 Excel出力</button>
+                            </div>
                             <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                                 <!-- 指標切り替え -->
                                 <div class="tab-container" style="display: flex; background: var(--background); padding: 3px; border-radius: 6px; border: 1px solid var(--border);">
@@ -2075,6 +2105,26 @@ header {
                         </div>
                         <div class="chart-container" id="chart-purpose-duration-container">
                             <canvas id="chart-purpose-duration"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 6ページ目の印刷用コンテナ (退会月の推移) -->
+            <div class="print-page-6-container">
+                <div class="charts-grid" style="grid-template-columns: 1fr; margin-bottom: 20px;">
+                    <div class="chart-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 5px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <h2 style="margin: 0; border-left: 4px solid var(--primary); padding-left: 10px;">退会月推移 (退会時学年別)</h2>
+                                <button id="export-withdraw-trend-excel-btn" class="btn-chart-action excel" style="padding: 4px 8px; font-size: 0.75rem;">📥 Excel出力</button>
+                            </div>
+                            <div style="display: flex; gap: 5px; align-items: center;">
+                                <div id="withdraw-year-container" class="tab-container" style="display: flex; background: var(--background); padding: 3px; border-radius: 6px; border: 1px solid var(--border);"></div>
+                            </div>
+                        </div>
+                        <div class="chart-container" id="chart-withdraw-trend-container">
+                            <canvas id="chart-withdraw-trend"></canvas>
                         </div>
                     </div>
                 </div>
@@ -2284,7 +2334,7 @@ header {
 
     <!-- バージョン情報フッター -->
     <div id="version-footer" style="text-align: center; padding: 15px; font-size: 0.8rem; color: var(--text-secondary); border-top: 1px solid var(--border); margin-top: 30px; background: var(--bg-card);">
-        入会対応分析ツール <span id="version-text">v1.2.0</span> (制作日時: <span id="build-time-text">20260806_131209</span>)
+        入会対応分析ツール <span id="version-text">v1.2.0</span> (制作日時: <span id="build-time-text">20260820_125852</span>)
     </div>
 
     <!-- 処理中ローディングオーバーレイ -->
@@ -2316,6 +2366,7 @@ let currentStoreSummaryList = []; // Excel出力用にマトリクス集計結�
 let currentGradeSummaryList = []; // Excel出力用に学年別集計結果を保持するグローバル変数
 let purposeDurationMetric = 'mean'; // 来校目的別受講期間グラフの指標 ('mean': 平均値, 'median': 中央値)
 let purposeDurationStatus = 'all'; // 来校目的別受講期間グラフのステータス絞り込み ('all': すべて, 'active': 受講生, 'withdrawn': 退会生)
+let withdrawTrendYear = null; // 退会月推移グラフの表示対象年
 
 // 列の同義語辞書（表記揺れ対応用）
 const COLUMN_SYNONYMS = {
@@ -2356,6 +2407,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 processedData.forEach(item => {
                     const dateForGrade = item.trialDateStr || item.inquiryDateStr;
                     item.trialGrade = calculateTrialGrade(item.currentGrade, dateForGrade, item.courseType, item.generation);
+                    if ((item.status === '退会済' || item.status === '退会生') && item.withdrawDateStr) {
+                        item.withdrawGrade = calculateTrialGrade(item.currentGrade, item.withdrawDateStr, item.courseType, item.generation);
+                    } else {
+                        item.withdrawGrade = null;
+                    }
                     updateStudentDurationAndAvg(item, baseDateInput.value);
                 });
                 // フィルターと表示の更新（プルダウンの選択状態は維持）
@@ -2474,6 +2530,24 @@ document.addEventListener('DOMContentLoaded', () => {
             updateTabStyles(btnDurationStatusWithdrawn, [btnDurationStatusAll, btnDurationStatusActive]);
             renderPurposeDurationChart(filteredData);
         });
+    }
+    
+    // グラフのExcelエクスポートボタンイベント登録
+    const exportPurposeTrendBtn = document.getElementById('export-purpose-trend-excel-btn');
+    if (exportPurposeTrendBtn) {
+        exportPurposeTrendBtn.addEventListener('click', exportPurposeTrendToExcel);
+    }
+    const exportMediaTrendBtn = document.getElementById('export-media-trend-excel-btn');
+    if (exportMediaTrendBtn) {
+        exportMediaTrendBtn.addEventListener('click', exportMediaTrendToExcel);
+    }
+    const exportPurposeDurationBtn = document.getElementById('export-purpose-duration-excel-btn');
+    if (exportPurposeDurationBtn) {
+        exportPurposeDurationBtn.addEventListener('click', exportPurposeDurationToExcel);
+    }
+    const exportWithdrawTrendBtn = document.getElementById('export-withdraw-trend-excel-btn');
+    if (exportWithdrawTrendBtn) {
+        exportWithdrawTrendBtn.addEventListener('click', exportWithdrawTrendToExcel);
     }
     
     // フィルターセクションの表示/非表示切り替え
@@ -3019,6 +3093,11 @@ function handleFile(file) {
                     item.enrollDateStr = formatDate(item.enrollDate);
                     item.withdrawDateStr = formatDate(item.withdrawDate);
 
+                    // 退会日が存在する場合は、ステータス列の値に関わらず「退会生」として扱う
+                    if (item.withdrawDateStr && item.withdrawDateStr !== '' && item.withdrawDateStr !== '(空白)') {
+                        item.status = '退会生';
+                    }
+
                     // 即入会判定 (ステータスが受講生/退会生 かつ 体験日と入会日が一致)
                     const isEnroll = (item.status === '受講生' || item.status === '退会生');
                     item.isImmediateEnroll = isEnroll && item.trialDateStr && item.enrollDateStr && (item.trialDateStr === item.enrollDateStr);
@@ -3026,6 +3105,13 @@ function handleFile(file) {
                     // 体験当時の学年補正
                     const dateForGrade = item.trialDateStr || item.inquiryDateStr;
                     item.trialGrade = calculateTrialGrade(item.currentGrade, dateForGrade, item.courseType, item.generation);
+
+                    // 退会当時の学年補正
+                    if ((item.status === '退会済' || item.status === '退会生') && item.withdrawDateStr) {
+                        item.withdrawGrade = calculateTrialGrade(item.currentGrade, item.withdrawDateStr, item.courseType, item.generation);
+                    } else {
+                        item.withdrawGrade = null;
+                    }
 
                     return item;
                 }).filter(Boolean).filter(item => item.store || item.status || item.currentGrade); // 空白行・除外行の排除
@@ -3076,6 +3162,7 @@ function handleFile(file) {
                     // 横並び（2x2）レイアウト用の目的・媒体別グラフ年次タブ初期化
                     initTrendYearTabs(processedData, 'purpose');
                     initTrendYearTabs(processedData, 'media');
+                    initWithdrawYearTabs(processedData);
                     applyFiltersAndRender();
                     
                     // 初期表示時はフィルターを開いておく
@@ -3456,6 +3543,79 @@ function populateFilters(data) {
             courseContainer.appendChild(label);
         });
     }
+    
+    populateQuickDateButtons(data);
+}
+
+function populateQuickDateButtons(data) {
+    const container = document.getElementById('quick-date-buttons');
+    if (!container) return;
+    container.innerHTML = '';
+    
+    const years = new Set();
+    data.forEach(item => {
+        ['inquiryDate', 'trialDate', 'enrollDate'].forEach(key => {
+            if (item[key] && typeof item[key] === 'string') {
+                const y = item[key].substring(0, 4);
+                if (y.match(/^\d{4}$/)) years.add(y);
+            }
+        });
+    });
+    
+    const sortedYears = Array.from(years).sort((a, b) => b - a); // 降順
+    
+    // スタイルを動的に追加（既存になければ）
+    if (!document.getElementById('quick-date-btn-style')) {
+        const style = document.createElement('style');
+        style.id = 'quick-date-btn-style';
+        style.innerHTML = `
+            .quick-date-btn {
+                padding: 6px 12px;
+                background: var(--background);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-sm);
+                cursor: pointer;
+                font-size: 0.85rem;
+                color: var(--text-primary);
+                transition: all 0.2s;
+            }
+            .quick-date-btn:hover {
+                background: var(--primary);
+                color: white;
+                border-color: var(--primary);
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    // 全期間ボタン
+    const allBtn = document.createElement('button');
+    allBtn.textContent = 'すべての期間';
+    allBtn.className = 'quick-date-btn';
+    allBtn.onclick = () => {
+        document.getElementById('filter-date-start').value = '';
+        document.getElementById('filter-date-end').value = '';
+        document.getElementById('filter-date-type').value = 'none';
+        applyFiltersAndRender();
+    };
+    container.appendChild(allBtn);
+    
+    // 年ボタン
+    sortedYears.forEach(year => {
+        const btnYear = document.createElement('button');
+        btnYear.textContent = year + '年';
+        btnYear.className = 'quick-date-btn';
+        btnYear.onclick = () => {
+            const typeSelect = document.getElementById('filter-date-type');
+            if (typeSelect.value === 'none') {
+                typeSelect.value = 'inquiryDate'; // 指定なしの場合は問合せ日をデフォルトに
+            }
+            document.getElementById('filter-date-start').value = `${year}-01-01`;
+            document.getElementById('filter-date-end').value = `${year}-12-31`;
+            applyFiltersAndRender();
+        };
+        container.appendChild(btnYear);
+    });
 }
 
 function getUniqueSortedValues(data, key, sortFn = null) {
@@ -3540,6 +3700,7 @@ function applyFiltersAndRender() {
     renderTrendChart(filteredData, 'purpose');
     renderTrendChart(filteredData, 'media');
     renderPurposeDurationChart(filteredData);
+    renderWithdrawTrendChart(filteredData);
     renderStoreTable(allStoreFilteredData); // 全教室KPI比較マトリクス用（教室フィルタを無視）
     renderGradeTable(filteredData); // 学年別KPI比較マトリクス用（全フィルタ連動）
     renderDetailTable(filteredData);
@@ -6734,6 +6895,561 @@ function renderPurposeDurationChart(data) {
             }
         }
     });
+}
+
+// -----------------------------------------
+// 退会月推移グラフ（学年別積み上げ）
+// -----------------------------------------
+function initWithdrawYearTabs(data) {
+    const container = document.getElementById('withdraw-year-container');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    // 退会日がある退会データの年を取得
+    const years = [...new Set(data.map(item => {
+        if (!['退会済', '退会生'].includes(item.status) || !item.withdrawDateStr) return '';
+        return item.withdrawDateStr.substring(0, 4);
+    }).filter(y => y !== ''))].sort((a, b) => b.localeCompare(a)); // 降順
+
+    if (years.length === 0) return;
+
+    if (!withdrawTrendYear || !years.includes(withdrawTrendYear)) {
+        withdrawTrendYear = years[0];
+    }
+
+    years.forEach(year => {
+        const btn = document.createElement('button');
+        btn.textContent = year + '年';
+        btn.className = 'tab-button';
+        btn.style.cssText = 'padding: 4px 8px; font-size: 0.75rem; border: none; background: transparent; cursor: pointer; border-radius: 4px; font-weight: bold; transition: all 0.2s;';
+        
+        if (year === withdrawTrendYear) {
+            btn.classList.add('active');
+            btn.style.color = 'var(--text-primary)';
+        } else {
+            btn.style.color = 'var(--text-muted)';
+        }
+
+        btn.addEventListener('click', () => {
+            withdrawTrendYear = year;
+            Array.from(container.children).forEach(child => {
+                child.classList.remove('active');
+                child.style.color = 'var(--text-muted)';
+            });
+            btn.classList.add('active');
+            btn.style.color = 'var(--text-primary)';
+            
+            renderWithdrawTrendChart(filteredData);
+        });
+        container.appendChild(btn);
+    });
+}
+
+function renderWithdrawTrendChart(data) {
+    const canvas = document.getElementById('chart-withdraw-trend');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+
+    if (charts.withdrawTrend) {
+        charts.withdrawTrend.destroy();
+        charts.withdrawTrend = null;
+    }
+
+    if (data.length === 0) return;
+
+    if (!withdrawTrendYear) {
+        // 退会年が未定の場合は最新の年を割り当てる
+        const years = data.map(item => {
+            if (!['退会済', '退会生'].includes(item.status) || !item.withdrawDateStr) return '';
+            return item.withdrawDateStr.substring(0, 4);
+        }).filter(y => y !== '');
+        if (years.length > 0) {
+            withdrawTrendYear = [...new Set(years)].sort((a, b) => b.localeCompare(a))[0];
+        }
+    }
+
+    if (!withdrawTrendYear) return;
+
+    // 指定年の退会生データを抽出
+    const yearFiltered = data.filter(item => {
+        return (item.status === '退会済' || item.status === '退会生') &&
+               item.withdrawDateStr &&
+               item.withdrawDateStr.startsWith(withdrawTrendYear);
+    });
+
+    const months = Array.from({ length: 12 }, (_, i) => `${i + 1}月`);
+    const gradeOrder = ['年長', 
+                        '小学校1年', '小学校2年', '小学校3年', '小学校4年', '小学校5年', '小学校6年',
+                        '中学校1年', '中学校2年', '中学校3年',
+                        '高校1年', '高校2年', '高校3年', '一般・社会人', '(空白)'];
+
+    // 各学年ごとの月別カウント配列
+    const datasetValues = {};
+    gradeOrder.forEach(grade => {
+        datasetValues[grade] = Array(12).fill(0);
+    });
+
+    // 集計
+    yearFiltered.forEach(item => {
+        const grade = item.withdrawGrade || '(空白)';
+        if (datasetValues[grade]) {
+            const date = new Date(item.withdrawDateStr);
+            if (!isNaN(date.getTime())) {
+                const monthIdx = date.getMonth(); // 0-indexed (0=1月, 11=12月)
+                datasetValues[grade][monthIdx]++;
+            }
+        }
+    });
+
+    // 綺麗なグラデーション/カラーパレット
+    const colors = [
+        'rgba(30, 58, 138, 0.75)', 'rgba(16, 185, 129, 0.75)', 'rgba(217, 70, 239, 0.75)', 
+        'rgba(245, 158, 11, 0.75)', 'rgba(239, 68, 68, 0.75)', 'rgba(99, 102, 241, 0.75)', 
+        'rgba(14, 116, 144, 0.75)', 'rgba(126, 34, 206, 0.75)', 'rgba(13, 148, 136, 0.75)', 
+        'rgba(244, 63, 94, 0.75)', 'rgba(101, 163, 13, 0.75)', 'rgba(225, 29, 72, 0.75)', 
+        'rgba(2, 132, 199, 0.75)', 'rgba(180, 83, 9, 0.75)', 'rgba(20, 184, 166, 0.75)'
+    ];
+    const borderColors = [
+        'rgba(30, 58, 138, 1)', 'rgba(16, 185, 129, 1)', 'rgba(217, 70, 239, 1)', 
+        'rgba(245, 158, 11, 1)', 'rgba(239, 68, 68, 1)', 'rgba(99, 102, 241, 1)', 
+        'rgba(14, 116, 144, 1)', 'rgba(126, 34, 206, 1)', 'rgba(13, 148, 136, 1)', 
+        'rgba(244, 63, 94, 1)', 'rgba(101, 163, 13, 1)', 'rgba(225, 29, 72, 1)', 
+        'rgba(2, 132, 199, 1)', 'rgba(180, 83, 9, 1)', 'rgba(20, 184, 166, 1)'
+    ];
+
+    // datasets作成 (データがすべて0の学年は表示しないようにして凡例をクリーンに保つ)
+    const datasets = [];
+    gradeOrder.forEach((grade, idx) => {
+        const vals = datasetValues[grade];
+        const hasData = vals.some(v => v > 0);
+        if (hasData) {
+            datasets.push({
+                label: grade,
+                data: vals,
+                backgroundColor: colors[idx % colors.length],
+                borderColor: borderColors[idx % borderColors.length],
+                borderWidth: 1,
+                borderRadius: 4
+            });
+        }
+    });
+
+    charts.withdrawTrend = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: months,
+            datasets: datasets
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        boxWidth: 10,
+                        padding: 10,
+                        font: { size: 10 }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        footer: (tooltipItems) => {
+                            let sum = 0;
+                            tooltipItems.forEach(x => sum += x.parsed.y);
+                            return `合計: ${sum} 名`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    stacked: true,
+                    grid: { display: false }
+                },
+                y: {
+                    stacked: true,
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    },
+                    title: {
+                        display: true,
+                        text: '退会者数 (名)',
+                        font: { weight: 'bold' }
+                    }
+                }
+            }
+        }
+    });
+}
+
+
+// -----------------------------------------
+// グラフのExcelエクスポート処理
+// -----------------------------------------
+
+function exportPurposeTrendToExcel() {
+    showLoading('来校目的別獲得推移を出力中...', 'Excelファイルを生成しています');
+    
+    setTimeout(() => {
+        try {
+            const purposeOrder = ['仕事活用', '資格取得', '転職', '趣味系', '学割', 'プログラミング', '速読', '脳活', 'iPhone', 'iPad', 'Android'];
+            
+            // 全年度の抽出
+            const years = [...new Set(filteredData.map(item => {
+                const dateStr = item.inquiryDateStr || item.trialDateStr;
+                return dateStr ? dateStr.substring(0, 4) : '';
+            }).filter(y => y !== ''))].sort((a, b) => b.localeCompare(a));
+
+            if (years.length === 0) {
+                hideLoading();
+                alert('出力対象のデータが存在しません。');
+                return;
+            }
+
+            const metricName = purposeTrendMetric === 'enroll' ? '入会者数' : 
+                               purposeTrendMetric === 'trialRate' ? '体験入会率' : '問合せ数';
+
+            const rows = [];
+
+            years.forEach(year => {
+                // その年のデータを抽出
+                const yearData = filteredData.filter(item => {
+                    const dateStr = item.inquiryDateStr || item.trialDateStr;
+                    return dateStr && dateStr.startsWith(year);
+                });
+
+                purposeOrder.forEach(purpose => {
+                    // 各月 (1〜12月) ごとの集計
+                    const monthlyValues = Array(12).fill(0);
+                    const monthlyDenominators = Array(12).fill(0); // 体験入会率用分母
+
+                    yearData.filter(item => (item.purpose || '(空白)') === purpose).forEach(item => {
+                        if (purposeTrendMetric === 'inquiry') {
+                            const date = new Date(item.inquiryDateStr);
+                            if (!isNaN(date.getTime())) {
+                                monthlyValues[date.getMonth()]++;
+                            }
+                        } else if (purposeTrendMetric === 'enroll') {
+                            const date = new Date(item.enrollDateStr);
+                            if (!isNaN(date.getTime()) && ['受講生', '退会生', '入会済（受講中）', '退会済'].includes(item.status)) {
+                                monthlyValues[date.getMonth()]++;
+                            }
+                        } else if (purposeTrendMetric === 'trialRate') {
+                            // 体験入会率
+                            const trialDate = new Date(item.trialDateStr);
+                            if (!isNaN(trialDate.getTime())) {
+                                const mIdx = trialDate.getMonth();
+                                // 分母：体験実施した数 ＋ 体験後NG等
+                                const isNotTrial = ['問合せ', '体験キャンセル', '体験予約に至らず'].includes(item.status);
+                                if (!isNotTrial) {
+                                    monthlyDenominators[mIdx]++;
+                                    const isEnroll = ['入会済（受講中）', '退会済', '受講生', '退会生'].includes(item.status);
+                                    if (isEnroll) {
+                                        monthlyValues[mIdx]++;
+                                    }
+                                }
+                            }
+                        }
+                    });
+
+                    const row = {
+                        '年度': year + '年',
+                        '来校目的': purpose,
+                    };
+
+                    let total = 0;
+                    for (let m = 0; m < 12; m++) {
+                        let val = monthlyValues[m];
+                        if (purposeTrendMetric === 'trialRate') {
+                            const denom = monthlyDenominators[m];
+                            val = denom > 0 ? parseFloat((val / denom * 100).toFixed(1)) : 0;
+                        }
+                        row[`${m + 1}月`] = val;
+                        total += monthlyValues[m];
+                    }
+
+                    if (purposeTrendMetric === 'trialRate') {
+                        // 率の年間値は単純合計ではなく年間総合の率
+                        const denomSum = monthlyDenominators.reduce((a, b) => a + b, 0);
+                        const numSum = monthlyValues.reduce((a, b) => a + b, 0);
+                        row['年間総合'] = denomSum > 0 ? parseFloat((numSum / denomSum * 100).toFixed(1)) + '%' : '0.0%';
+                    } else {
+                        row['年間合計'] = total;
+                    }
+
+                    rows.push(row);
+                });
+            });
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(rows);
+            XLSX.utils.book_append_sheet(wb, ws, "来校目的別獲得推移");
+            XLSX.writeFile(wb, `来校目的別獲得推移_${metricName}_全年度_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}.xlsx`);
+            hideLoading();
+        } catch (err) {
+            console.error(err);
+            hideLoading();
+            alert('Excel出力中にエラーが発生しました。');
+        }
+    }, 50);
+}
+
+function exportMediaTrendToExcel() {
+    showLoading('媒体別獲得推移を出力中...', 'Excelファイルを生成しています');
+    
+    setTimeout(() => {
+        try {
+            const mediaOrder = ['WEB系', '折込', '店内', '紹介', 'その他'];
+            
+            // 全年度の抽出
+            const years = [...new Set(filteredData.map(item => {
+                const dateStr = item.inquiryDateStr || item.trialDateStr;
+                return dateStr ? dateStr.substring(0, 4) : '';
+            }).filter(y => y !== ''))].sort((a, b) => b.localeCompare(a));
+
+            if (years.length === 0) {
+                hideLoading();
+                alert('出力対象のデータが存在しません。');
+                return;
+            }
+
+            const metricName = mediaTrendMetric === 'enroll' ? '入会者数' : 
+                               mediaTrendMetric === 'trialRate' ? '体験入会率' : '問合せ数';
+
+            const rows = [];
+
+            years.forEach(year => {
+                const yearData = filteredData.filter(item => {
+                    const dateStr = item.inquiryDateStr || item.trialDateStr;
+                    return dateStr && dateStr.startsWith(year);
+                });
+
+                mediaOrder.forEach(media => {
+                    const monthlyValues = Array(12).fill(0);
+                    const monthlyDenominators = Array(12).fill(0);
+
+                    yearData.filter(item => (item.media || '(空白)') === media).forEach(item => {
+                        if (mediaTrendMetric === 'inquiry') {
+                            const date = new Date(item.inquiryDateStr);
+                            if (!isNaN(date.getTime())) {
+                                monthlyValues[date.getMonth()]++;
+                            }
+                        } else if (mediaTrendMetric === 'enroll') {
+                            const date = new Date(item.enrollDateStr);
+                            if (!isNaN(date.getTime()) && ['受講生', '退会生', '入会済（受講中）', '退会済'].includes(item.status)) {
+                                monthlyValues[date.getMonth()]++;
+                            }
+                        } else if (mediaTrendMetric === 'trialRate') {
+                            const trialDate = new Date(item.trialDateStr);
+                            if (!isNaN(trialDate.getTime())) {
+                                const mIdx = trialDate.getMonth();
+                                const isNotTrial = ['問合せ', '体験キャンセル', '体験予約に至らず'].includes(item.status);
+                                if (!isNotTrial) {
+                                    monthlyDenominators[mIdx]++;
+                                    const isEnroll = ['入会済（受講中）', '退会済', '受講生', '退会生'].includes(item.status);
+                                    if (isEnroll) {
+                                        monthlyValues[mIdx]++;
+                                    }
+                                }
+                            }
+                        }
+                    });
+
+                    const row = {
+                        '年度': year + '年',
+                        '媒体': media,
+                    };
+
+                    let total = 0;
+                    for (let m = 0; m < 12; m++) {
+                        let val = monthlyValues[m];
+                        if (mediaTrendMetric === 'trialRate') {
+                            const denom = monthlyDenominators[m];
+                            val = denom > 0 ? parseFloat((val / denom * 100).toFixed(1)) : 0;
+                        }
+                        row[`${m + 1}月`] = val;
+                        total += monthlyValues[m];
+                    }
+
+                    if (mediaTrendMetric === 'trialRate') {
+                        const denomSum = monthlyDenominators.reduce((a, b) => a + b, 0);
+                        const numSum = monthlyValues.reduce((a, b) => a + b, 0);
+                        row['年間総合'] = denomSum > 0 ? parseFloat((numSum / denomSum * 100).toFixed(1)) + '%' : '0.0%';
+                    } else {
+                        row['年間合計'] = total;
+                    }
+
+                    rows.push(row);
+                });
+            });
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(rows);
+            XLSX.utils.book_append_sheet(wb, ws, "媒体別獲得推移");
+            XLSX.writeFile(wb, `媒体別獲得推移_${metricName}_全年度_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}.xlsx`);
+            hideLoading();
+        } catch (err) {
+            console.error(err);
+            hideLoading();
+            alert('Excel出力中にエラーが発生しました。');
+        }
+    }, 50);
+}
+
+function exportPurposeDurationToExcel() {
+    showLoading('来校目的別受講期間を出力中...', 'Excelファイルを生成しています');
+    
+    setTimeout(() => {
+        try {
+            const purposeOrder = ['仕事活用', '資格取得', '転職', '趣味系', '学割', 'プログラミング', '速読', '脳活', 'iPhone', 'iPad', 'Android'];
+            
+            // ステータス絞り込みの適用
+            let statusFiltered = filteredData.filter(item => {
+                if (!item.enrollDateStr || item.durationMonths === null || item.durationMonths === undefined) {
+                    return false;
+                }
+                if (purposeDurationStatus === 'active') {
+                    return ['受講生', '入会済（受講中）'].includes(item.status);
+                } else if (purposeDurationStatus === 'withdrawn') {
+                    return ['退会生', '退会済'].includes(item.status);
+                }
+                return ['受講生', '退会生', '入会済（受講中）', '退会済'].includes(item.status);
+            });
+
+            const durationMap = {};
+            purposeOrder.forEach(purpose => {
+                durationMap[purpose] = [];
+            });
+
+            statusFiltered.forEach(item => {
+                const purpose = item.purpose || '(空白)';
+                if (durationMap[purpose]) {
+                    durationMap[purpose].push(item.durationMonths);
+                }
+            });
+
+            const rows = [];
+            const metricName = purposeDurationMetric === 'median' ? '在籍期間 中央値 (ヶ月)' : '在籍期間 平均値 (ヶ月)';
+            const statusName = purposeDurationStatus === 'active' ? '受講生のみ' : 
+                               purposeDurationStatus === 'withdrawn' ? '退会生のみ' : 'すべての受講生';
+
+            purposeOrder.forEach(purpose => {
+                const list = durationMap[purpose];
+                let val = 0.0;
+                if (list.length > 0) {
+                    if (purposeDurationMetric === 'median') {
+                        const sorted = [...list].sort((a, b) => a - b);
+                        const mid = Math.floor(sorted.length / 2);
+                        if (sorted.length % 2 === 0) {
+                            val = parseFloat(((sorted[mid - 1] + sorted[mid]) / 2).toFixed(1));
+                        } else {
+                            val = sorted[mid];
+                        }
+                    } else {
+                        const sum = list.reduce((a, b) => a + b, 0);
+                        val = parseFloat((sum / list.length).toFixed(1));
+                    }
+                }
+
+                rows.push({
+                    '来校目的': purpose,
+                    [metricName]: list.length > 0 ? val : 'データ無し',
+                    'サンプル数 (名)': list.length
+                });
+            });
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(rows);
+            XLSX.utils.book_append_sheet(wb, ws, "目的別受講期間");
+            XLSX.writeFile(wb, `目的別受講期間_${purposeDurationMetric === 'median' ? '中央値' : '平均値'}_${statusName}_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}.xlsx`);
+            hideLoading();
+        } catch (err) {
+            console.error(err);
+            hideLoading();
+            alert('Excel出力中にエラーが発生しました。');
+        }
+    }, 50);
+}
+
+function exportWithdrawTrendToExcel() {
+    showLoading('退会月推移を出力中...', 'Excelファイルを生成しています');
+    
+    setTimeout(() => {
+        try {
+            // 退会済の全データを抽出
+            const withdrawData = filteredData.filter(item => {
+                return (item.status === '退会済' || item.status === '退会生') && item.withdrawDateStr;
+            });
+
+            const years = [...new Set(withdrawData.map(item => {
+                return item.withdrawDateStr.substring(0, 4);
+            }).filter(y => y !== ''))].sort((a, b) => b.localeCompare(a));
+
+            if (years.length === 0) {
+                hideLoading();
+                alert('退会データが存在しません。');
+                return;
+            }
+
+            const gradeOrder = ['年長', 
+                                '小学校1年', '小学校2年', '小学校3年', '小学校4年', '小学校5年', '小学校6年',
+                                '中学校1年', '中学校2年', '中学校3年',
+                                '高校1年', '高校2年', '高校3年', '一般・社会人', '(空白)'];
+
+            const rows = [];
+
+            years.forEach(year => {
+                const yearData = withdrawData.filter(item => item.withdrawDateStr.startsWith(year));
+
+                gradeOrder.forEach(grade => {
+                    const monthlyValues = Array(12).fill(0);
+
+                    yearData.filter(item => (item.withdrawGrade || '(空白)') === grade).forEach(item => {
+                        const date = new Date(item.withdrawDateStr);
+                        if (!isNaN(date.getTime())) {
+                            monthlyValues[date.getMonth()]++;
+                        }
+                    });
+
+                    const total = monthlyValues.reduce((a, b) => a + b, 0);
+
+                    // 0件の学年は出力行から除外してリストをスッキリさせる
+                    if (total > 0) {
+                        const row = {
+                            '年度': year + '年',
+                            '退会時学年': grade,
+                        };
+
+                        for (let m = 0; m < 12; m++) {
+                            row[`${m + 1}月`] = monthlyValues[m];
+                        }
+                        row['年間退会者数'] = total;
+
+                        rows.push(row);
+                    }
+                });
+            });
+
+            if (rows.length === 0) {
+                hideLoading();
+                alert('出力対象のデータが存在しません。');
+                return;
+            }
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(rows);
+            XLSX.utils.book_append_sheet(wb, ws, "退会時学年別退会月推移");
+            XLSX.writeFile(wb, `退会時学年別退会月推移_全年度_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}.xlsx`);
+            hideLoading();
+        } catch (err) {
+            console.error(err);
+            hideLoading();
+            alert('Excel出力中にエラーが発生しました。');
+        }
+    }, 50);
 }
 
 
